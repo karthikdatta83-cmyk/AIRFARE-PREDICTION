@@ -1,4 +1,4 @@
-```javascript
+
 const API_URL = "https://airfare-prediction-03wc.onrender.com/predict";
 
 const form = document.getElementById("fareForm");
@@ -126,4 +126,3 @@ resetBtn.addEventListener("click", () => {
         behavior: "smooth"
     });
 });
-```
