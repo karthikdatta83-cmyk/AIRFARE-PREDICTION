@@ -1,5 +1,5 @@
 
-const API_URL = "https://airfare-prediction-03wc.onrend.com/predict";
+const API_URL = "https://airfare-prediction-03wc.onrender.com/predict";
 
 const form = document.getElementById("fareForm");
 const predictBtn = document.getElementById("predictBtn");
