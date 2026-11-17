@@ -1,59 +1,129 @@
-const form = document.getElementById("flightForm");
+```javascript
+const API_URL = "https://airfare-prediction-03wc.onrender.com/predict";
 
-form.addEventListener("submit", async function(event) {
+const form = document.getElementById("fareForm");
+const predictBtn = document.getElementById("predictBtn");
+const errorMessage = document.getElementById("errorMessage");
+const resultCard = document.getElementById("resultCard");
+const predictedFare = document.getElementById("predictedFare");
+const resetBtn = document.getElementById("resetBtn");
 
+const dateInput = document.getElementById("Journey_Date");
+const today = new Date();
+
+dateInput.min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+function getTimeParts(value) {
+    const [hour, minute] = value.split(":").map(Number);
+    return { hour, minute };
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+}
+
+function clearMessages() {
+    errorMessage.textContent = "";
+    errorMessage.style.display = "none";
+}
+
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const data = {
-        Airline: document.getElementById("Airline").value,
-        Source: document.getElementById("Source").value,
-        Destination: document.getElementById("Destination").value,
-        Route: document.getElementById("Route").value,
-        Additional_Info: document.getElementById("Additional_Info").value,
+    clearMessages();
+    resultCard.classList.remove("show");
 
+    const journeyDate = new Date(`${dateInput.value}T00:00:00`);
+    const departure = getTimeParts(document.getElementById("Dep_Time").value);
+    const arrival = getTimeParts(document.getElementById("Arrival_Time").value);
+
+    const source = document.getElementById("Source").value;
+    const destination = document.getElementById("Destination").value;
+
+    if (source === destination) {
+        showError("Source and destination must be different cities.");
+        return;
+    }
+
+    const payload = {
+        Airline: document.getElementById("Airline").value,
+        Source: source,
+        Destination: destination,
+        Route: document.getElementById("Route").value.trim(),
+        Additional_Info: document.getElementById("Additional_Info").value,
         Duration: Number(document.getElementById("Duration").value),
         Total_Stops: Number(document.getElementById("Total_Stops").value),
-        Journey_Day: Number(document.getElementById("Journey_Day").value),
-        Journey_Month: Number(document.getElementById("Journey_Month").value),
-        Dep_Hour: Number(document.getElementById("Dep_Hour").value),
-        Dep_Minute: Number(document.getElementById("Dep_Minute").value),
-        Arrival_Hour: Number(document.getElementById("Arrival_Hour").value),
-        Arrival_Minute: Number(document.getElementById("Arrival_Minute").value)
+        Journey_Day: journeyDate.getDate(),
+        Journey_Month: journeyDate.getMonth() + 1,
+        Dep_Hour: departure.hour,
+        Dep_Minute: departure.minute,
+        Arrival_Hour: arrival.hour,
+        Arrival_Minute: arrival.minute
     };
 
-    const result = document.getElementById("result");
+    if (!payload.Route) {
+        showError("Please enter the flight route.");
+        return;
+    }
 
-    result.innerHTML = "Predicting airfare...";
+    predictBtn.disabled = true;
+    predictBtn.innerHTML = "Predicting...";
+    predictBtn.style.opacity = "0.75";
 
     try {
-
-        const response = await fetch("https://airfare-prediction-03wc.onrender.com/predict", {
-
+        const response = await fetch(API_URL, {
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
-            body: JSON.stringify(data)
-
+            body: JSON.stringify(payload)
         });
 
-        const output = await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(JSON.stringify(output.detail || output));
+            throw new Error(data.detail || "Prediction failed.");
         }
 
-        result.innerHTML =
-            "Predicted Airfare: \u20B9" +
-            Number(output.predicted_fare).toFixed(2);
+        if (typeof data.predicted_fare !== "number") {
+            throw new Error("Invalid prediction response from backend.");
+        }
+
+        predictedFare.textContent = new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }).format(data.predicted_fare);
+
+        resultCard.classList.add("show");
+
+        resultCard.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    } catch (error) {
+        if (error.message.includes("Failed to fetch")) {
+            showError("Unable to connect to backend. Check your internet connection, backend status and CORS settings.");
+        } else {
+            showError(error.message);
+        }
+
+    } finally {
+        predictBtn.disabled = false;
+        predictBtn.innerHTML = 'Predict airfare <span>→</span>';
+        predictBtn.style.opacity = "1";
     }
-
-    catch(error) {
-
-        result.innerHTML = "Error: " + error.message;
-
-    }
-
 });
+
+resetBtn.addEventListener("click", () => {
+    form.reset();
+    clearMessages();
+    resultCard.classList.remove("show");
+
+    document.getElementById("predictor").scrollIntoView({
+        behavior: "smooth"
+    });
+});
+```
