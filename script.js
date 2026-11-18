@@ -1,5 +1,5 @@
 
-const API_URL = "https://airfare-price-estimation-z3wm.onrender.com/predict";
+const API_URL = "https://airfare-prediction-1.onrender.com/predict";
 
 const form = document.getElementById("fareForm");
 const predictBtn = document.getElementById("predictBtn");
@@ -34,9 +34,20 @@ form.addEventListener("submit", async (event) => {
     clearMessages();
     resultCard.classList.remove("show");
 
+    if (!dateInput.value) {
+        showError("Please select a journey date.");
+        return;
+    }
+
     const journeyDate = new Date(`${dateInput.value}T00:00:00`);
-    const departure = getTimeParts(document.getElementById("Dep_Time").value);
-    const arrival = getTimeParts(document.getElementById("Arrival_Time").value);
+
+    const departure = getTimeParts(
+        document.getElementById("Dep_Time").value
+    );
+
+    const arrival = getTimeParts(
+        document.getElementById("Arrival_Time").value
+    );
 
     const source = document.getElementById("Source").value;
     const destination = document.getElementById("Destination").value;
@@ -67,6 +78,14 @@ form.addEventListener("submit", async (event) => {
         return;
     }
 
+    if (
+        !Number.isFinite(payload.Duration) ||
+        !Number.isFinite(payload.Total_Stops)
+    ) {
+        showError("Please enter valid duration and stop values.");
+        return;
+    }
+
     predictBtn.disabled = true;
     predictBtn.innerHTML = "Predicting...";
     predictBtn.style.opacity = "0.75";
@@ -80,10 +99,26 @@ form.addEventListener("submit", async (event) => {
             body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+
+        let data;
+
+        try {
+            data = JSON.parse(responseText);
+        } catch {
+            throw new Error(
+                `Backend returned an empty or invalid response. HTTP status: ${response.status}`
+            );
+        }
 
         if (!response.ok) {
-            throw new Error(data.detail || "Prediction failed.");
+            const detail = data.detail;
+
+            throw new Error(
+                typeof detail === "string"
+                    ? detail
+                    : JSON.stringify(detail || data)
+            );
         }
 
         if (typeof data.predicted_fare !== "number") {
@@ -104,8 +139,15 @@ form.addEventListener("submit", async (event) => {
         });
 
     } catch (error) {
-        if (error.message.includes("Failed to fetch")) {
-            showError("Unable to connect to backend. Check your internet connection, backend status and CORS settings.");
+        console.error("Prediction Error:", error);
+
+        if (
+            error.message.includes("Failed to fetch") ||
+            error instanceof TypeError
+        ) {
+            showError(
+                "Unable to connect to backend. Cxheck backend status and CORS settings."
+            );
         } else {
             showError(error.message);
         }
@@ -119,6 +161,7 @@ form.addEventListener("submit", async (event) => {
 
 resetBtn.addEventListener("click", () => {
     form.reset();
+
     clearMessages();
     resultCard.classList.remove("show");
 
@@ -126,3 +169,4 @@ resetBtn.addEventListener("click", () => {
         behavior: "smooth"
     });
 });
+            
