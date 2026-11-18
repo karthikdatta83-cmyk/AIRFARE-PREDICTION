@@ -146,7 +146,7 @@ form.addEventListener("submit", async (event) => {
             error instanceof TypeError
         ) {
             showError(
-                "Unable to connect to backend. Cxheck backend status and CORS settings."
+                "Unable to connect to backend. Check backend status and CORS settings."
             );
         } else {
             showError(error.message);
