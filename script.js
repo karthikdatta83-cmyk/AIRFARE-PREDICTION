@@ -1,5 +1,5 @@
 
-const API_URL = "https://airfare-price-estimation-z3wm.onrender.com/#predictor";
+const API_URL = "https://airfare-price-estimation-z3wm.onrender.com/predictor";
 
 const form = document.getElementById("fareForm");
 const predictBtn = document.getElementById("predictBtn");
