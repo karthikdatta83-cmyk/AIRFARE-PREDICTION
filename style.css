@@ -14,3 +14,31 @@ footer{max-width:1200px;margin:auto;padding:25px 28px 32px;display:flex;align-it
 @media(max-width:600px){.topbar{height:70px;padding:0 19px}.topbar nav{display:none}.top-cta{font-size:11px;padding:9px 12px}.hero{padding:48px 21px 70px}.hero h1{font-size:49px;letter-spacing:-2.7px}.hero-text{font-size:13px}.hero-stats{gap:14px;margin-top:38px}.hero-stats small{font-size:8px}.hero-visual{height:320px;margin-top:5px}.flight-card{padding:21px;width:94%}.airport-code{font-size:29px}.chip-top{right:0;top:17px}.chip-bottom{left:0;bottom:16px}.orbit-a{width:340px;height:250px}.orbit-b{width:300px;height:210px}.predict-section{padding:65px 15px}.section-heading{display:block;padding:0 7px}.section-heading h2,.center-heading h2{font-size:30px}.section-heading p{margin-top:12px}.predict-card{padding:25px 19px}.form-grid,.form-grid-last{grid-template-columns:1fr;max-width:none;gap:14px}.section-spaced{margin-top:29px}.form-footer{align-items:stretch;flex-direction:column}.submit-btn{width:100%}.result-card{align-items:flex-start;flex-wrap:wrap;padding:20px}.result-price{font-size:29px}.reset-btn{margin:5px 0 0 64px}.how-section{padding:68px 20px}.steps{grid-template-columns:1fr;gap:12px;margin-top:30px}.step-card{padding:22px}.about-section{margin:0 15px 60px;padding:28px 23px;display:block}.about-mark{width:75px;height:75px;font-size:33px;margin-bottom:25px;border-radius:20px}.about-section h2{font-size:27px}footer{padding:22px 20px;gap:12px;flex-wrap:wrap}footer>span:nth-child(2){order:3;width:100%}}
 
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid #ffffff70;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ========================================================
+   SkyFare 2.0 Upgraded Styles: Presets, Badges, Ranges
+   ======================================================== */
+.presets-container{max-width:1000px;margin:0 auto 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.presets-label{font-size:11px;font-weight:700;color:#5a6c88}
+.presets-pills{display:flex;gap:10px;flex-wrap:wrap}
+.preset-pill{border:1px solid #dce5f2;background:#fff;border-radius:20px;padding:6px 14px;font:600 11px 'DM Sans',sans-serif;color:#355380;cursor:pointer;transition:all .2s ease;box-shadow:0 2px 6px #10264c08}
+.preset-pill:hover{border-color:#4779ff;color:#4779ff;transform:translateY(-1px);box-shadow:0 4px 12px #4779ff20}
+.preset-pill:active{transform:translateY(0)}
+
+.field-title-row{display:flex;justify-content:space-between;align-items:center;width:100%}
+.auto-tag{font-size:9px;font-weight:700;color:#357aff;background:#e9f0ff;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.duration-badge{font-size:9px;font-weight:700;color:#18805a;background:#e6f8f0;padding:2px 7px;border-radius:10px}
+.next-day-badge{font-size:9px;font-weight:700;color:#c05621;background:#feebc8;padding:2px 7px;border-radius:10px}
+
+.result-content{flex:1;display:flex;flex-direction:column;gap:6px}
+.result-top-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.confidence-pill{font-size:9px;font-weight:700;color:#49e3be;background:#ffffff15;border:1px solid #49e3be40;padding:3px 9px;border-radius:12px;text-transform:uppercase;letter-spacing:.8px}
+
+.result-range-box{margin:8px 0;padding:10px 14px;background:#ffffff0d;border:1px solid #ffffff1a;border-radius:10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.range-label{font-size:11px;color:#9cb5d8}
+.result-range-box strong{font:700 16px Manrope,sans-serif;color:#7fe0e5}
+.result-range-box small{font-size:9px;color:#859bb8}
+
+.result-chips{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+.result-chip{font-size:10px;font-weight:600;color:#cfe2ff;background:#ffffff12;padding:4px 10px;border-radius:6px;border:1px solid #ffffff18}
+.result-disclaimer{font-size:9px;color:#89a2c3;margin-top:6px}

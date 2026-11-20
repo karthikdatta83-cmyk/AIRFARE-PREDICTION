@@ -32,95 +32,277 @@
       <div class="hero-copy">
         <div class="eyebrow"><span class="live-dot"></span> AI-POWERED FLIGHT PRICE ESTIMATION</div>
         <h1>Travel smart.<br><span>Pay the right fare.</span></h1>
-        <p class="hero-text">Plan your next journey with an intelligent airfare estimate powered by machine learning. Enter your flight details and discover an estimated ticket price in seconds.</p>
+        <p class="hero-text">Plan your next journey with an intelligent domestic airfare estimate powered by machine learning. Select your flight details and discover predicted ticket fares and realistic price ranges in seconds.</p>
         <div class="hero-actions">
           <a class="primary-btn" href="#predictor">Estimate my fare <span>→</span></a>
-          <div class="trust-note"><span class="trust-icon">✦</span><span>Powered by <b>Random Forest Regression</b></span></div>
+          <div class="trust-note"><span class="trust-icon">✦</span><span>Powered by <b>Random Forest Regression (100 Trees)</b></span></div>
         </div>
         <div class="hero-stats">
-          <div><strong>AI</strong><small>Powered prediction</small></div>
+          <div><strong>100%</strong><small>Instant AI inference</small></div>
           <i></i>
-          <div><strong>₹ INR</strong><small>Indian airfare estimate</small></div>
+          <div><strong>₹ INR</strong><small>Indian domestic fares</small></div>
           <i></i>
-          <div><strong>Fast</strong><small>Instant results</small></div>
+          <div><strong>± Range</strong><small>Tree variance bounds</small></div>
         </div>
       </div>
       <div class="hero-visual">
         <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
         <div class="flight-card">
-          <div class="flight-card-top"><span>YOUR NEXT JOURNEY</span><span class="flight-status"><b></b> READY TO PLAN</span></div>
+          <div class="flight-card-top"><span>ACTIVE ESTIMATOR</span><span class="flight-status"><b></b> MODEL READY</span></div>
           <div class="route">
-            <div><span class="airport-code">HYD</span><span class="airport-name">Hyderabad</span></div>
-            <div class="route-middle"><span>✈</span><div class="route-line"></div><small>YOUR DESTINATION</small></div>
-            <div class="route-right"><span class="airport-code">DEL</span><span class="airport-name">New Delhi</span></div>
+            <div><span class="airport-code" id="heroSrcCode">DEL</span><span class="airport-name" id="heroSrcName">Delhi</span></div>
+            <div class="route-middle"><span>✈</span><div class="route-line"></div><small id="heroRouteText">DIRECT ROUTE</small></div>
+            <div class="route-right"><span class="airport-code" id="heroDestCode">COK</span><span class="airport-name" id="heroDestName">Cochin</span></div>
           </div>
           <div class="flight-divider"></div>
-          <div class="ticket-bottom"><div><small>SMART ESTIMATION</small><strong>₹ <span class="shine">Your fare,</span><br>before you fly.</strong></div><div class="ticket-stamp">AI<br>✦</div></div>
+          <div class="ticket-bottom">
+            <div><small>SMART ESTIMATION</small><strong>₹ <span class="shine">Your fare,</span><br>before you fly.</strong></div>
+            <div class="ticket-stamp">AI<br>✦</div>
+          </div>
         </div>
-        <div class="floating-chip chip-top"><span>✦</span> Intelligent fare insights</div>
-        <div class="floating-chip chip-bottom"><span class="chip-check">✓</span> Estimate in seconds</div>
+        <div class="floating-chip chip-top"><span>✦</span> Dynamic Route & Duration Engine</div>
+        <div class="floating-chip chip-bottom"><span class="chip-check">✓</span> 90% Confidence Interval</div>
         <div class="plane-decoration">✈</div>
       </div>
     </section>
 
     <section class="predict-section" id="predictor">
       <div class="section-heading">
-        <div><div class="eyebrow"><span class="eyebrow-line"></span> FLIGHT DETAILS</div><h2>Let’s find your <span>fare.</span></h2></div>
-        <p>Fill in your journey information below.<br>Our model will estimate your airfare.</p>
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> FLIGHT DETAILS</div>
+          <h2>Let’s find your <span>fare.</span></h2>
+        </div>
+        <p>Choose your journey details or pick a quick preset below.<br>Our model will predict the expected airfare and pricing range.</p>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="presets-container">
+        <span class="presets-label">⚡ Popular flight presets:</span>
+        <div class="presets-pills">
+          <button type="button" class="preset-pill" data-preset="del_cok">DEL ✈ COK (IndiGo • 1 Stop)</button>
+          <button type="button" class="preset-pill" data-preset="blr_del">BLR ✈ DEL (Air India • Non-stop)</button>
+          <button type="button" class="preset-pill" data-preset="bom_hyd">BOM ✈ HYD (SpiceJet • Non-stop)</button>
+          <button type="button" class="preset-pill" data-preset="ccu_blr">CCU ✈ BLR (Vistara • 1 Stop)</button>
+        </div>
       </div>
 
       <form id="fareForm" class="predict-card">
-        <div class="form-section-title"><span class="step-number">01</span><div><b>Your route</b><small>Where are you flying?</small></div></div>
+        <!-- Section 1: Route -->
+        <div class="form-section-title">
+          <span class="step-number">01</span>
+          <div><b>Your route</b><small>Where are you flying?</small></div>
+        </div>
         <div class="form-grid">
-          <label class="field"><span>Airline</span><select id="Airline" required><option value="">Select airline</option><option>IndiGo</option><option>Air India</option><option>Jet Airways</option><option>SpiceJet</option><option>Multiple carriers</option><option>GoAir</option><option>Vistara</option><option>Air Asia</option><option>Other</option></select></label>
-          <label class="field"><span>Source city</span><select id="Source" required><option value="">Select source</option><option>Banglore</option><option>Chennai</option><option>Delhi</option><option>Kolkata</option><option>Mumbai</option></select></label>
-          <label class="field"><span>Destination city</span><select id="Destination" required><option value="">Select destination</option><option>Banglore</option><option>Chennai</option><option>Delhi</option><option>Kolkata</option><option>New Delhi</option><option>Hyderabad</option><option>Cochin</option></select></label>
-          <label class="field"><span>Route</span><input id="Route" type="text" placeholder="e.g. DEL → BOM → COK" required /></label>
+          <label class="field">
+            <span>Airline</span>
+            <select id="Airline" required>
+              <option value="">Select airline</option>
+              <option value="IndiGo" selected>IndiGo</option>
+              <option value="Air India">Air India</option>
+              <option value="Jet Airways">Jet Airways</option>
+              <option value="SpiceJet">SpiceJet</option>
+              <option value="Vistara">Vistara</option>
+              <option value="Air Asia">Air Asia</option>
+              <option value="GoAir">GoAir</option>
+              <option value="Multiple carriers">Multiple carriers</option>
+              <option value="Jet Airways Business">Jet Airways Business</option>
+              <option value="Trujet">Trujet</option>
+              <option value="Multiple carriers Premium economy">Multiple carriers Premium economy</option>
+              <option value="Vistara Premium economy">Vistara Premium economy</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Source city</span>
+            <select id="Source" required>
+              <option value="">Select source</option>
+              <option value="Delhi" selected>Delhi (DEL)</option>
+              <option value="Banglore">Bengaluru (BLR)</option>
+              <option value="Mumbai">Mumbai (BOM)</option>
+              <option value="Kolkata">Kolkata (CCU)</option>
+              <option value="Chennai">Chennai (MAA)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Destination city</span>
+            <select id="Destination" required>
+              <option value="">Select destination</option>
+              <option value="Cochin" selected>Cochin (COK)</option>
+              <option value="New Delhi">New Delhi (DEL)</option>
+              <option value="Delhi">Delhi (DEL)</option>
+              <option value="Hyderabad">Hyderabad (HYD)</option>
+              <option value="Banglore">Bengaluru (BLR)</option>
+              <option value="Kolkata">Kolkata (CCU)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-title-row">
+              <span>Flight Route</span>
+              <span id="routeAutoBadge" class="auto-tag">Auto</span>
+            </span>
+            <input id="Route" type="text" list="routeSuggestions" placeholder="e.g. DEL → BOM → COK" required />
+            <datalist id="routeSuggestions"></datalist>
+            <small class="field-hint" id="routeHint">Auto-generated from stops and cities. You can also pick from transit suggestions.</small>
+          </label>
         </div>
 
-        <div class="form-section-title section-spaced"><span class="step-number">02</span><div><b>Journey schedule</b><small>When does your flight depart and arrive?</small></div></div>
+        <!-- Section 2: Journey Schedule -->
+        <div class="form-section-title section-spaced">
+          <span class="step-number">02</span>
+          <div><b>Journey schedule</b><small>When does your flight depart and arrive?</small></div>
+        </div>
         <div class="form-grid">
-          <label class="field"><span>Journey date</span><input id="Journey_Date" type="date" required /></label>
-          <label class="field"><span>Departure time</span><input id="Dep_Time" type="time" required /></label>
-          <label class="field"><span>Arrival time</span><input id="Arrival_Time" type="time" required /></label>
-          <label class="field"><span>Duration (minutes)</span><input id="Duration" type="number" min="1" max="2000" placeholder="e.g. 150" required /><small class="field-hint">Example: 2 hours 30 minutes = 150</small></label>
+          <label class="field">
+            <span>Journey date</span>
+            <input id="Journey_Date" type="date" required />
+          </label>
+
+          <label class="field">
+            <span>Departure time</span>
+            <input id="Dep_Time" type="time" value="09:30" required />
+          </label>
+
+          <label class="field">
+            <span>Arrival time</span>
+            <input id="Arrival_Time" type="time" value="12:00" required />
+          </label>
+
+          <label class="field">
+            <span class="field-title-row">
+              <span>Duration (minutes)</span>
+              <span id="durationBadge" class="duration-badge">2h 30m</span>
+              <span id="nextDayBadge" class="next-day-badge" style="display:none;">+1 Day</span>
+            </span>
+            <input id="Duration" type="number" min="1" max="2500" value="150" placeholder="e.g. 150" required />
+            <small class="field-hint">Auto-calculated from departure & arrival timings.</small>
+          </label>
         </div>
 
-        <div class="form-section-title section-spaced"><span class="step-number">03</span><div><b>Flight preferences</b><small>A few more details to improve your estimate.</small></div></div>
+        <!-- Section 3: Preferences -->
+        <div class="form-section-title section-spaced">
+          <span class="step-number">03</span>
+          <div><b>Flight preferences & stops</b><small>Specify connections and service type.</small></div>
+        </div>
         <div class="form-grid form-grid-last">
-          <label class="field"><span>Total stops</span><select id="Total_Stops" required><option value="">Select stops</option><option value="0">Non-stop</option><option value="1">1 stop</option><option value="2">2 stops</option><option value="3">3 stops</option><option value="4">4 stops</option></select></label>
-          <label class="field"><span>Additional information</span><select id="Additional_Info"><option>No info</option><option>In-flight meal not included</option><option>No check-in baggage included</option><option>1 Short layover</option><option>1 Long layover</option><option>Change airports</option><option>Business class</option></select></label>
+          <label class="field">
+            <span>Total stops</span>
+            <select id="Total_Stops" required>
+              <option value="0">Non-stop (Direct)</option>
+              <option value="1" selected>1 stop</option>
+              <option value="2">2 stops</option>
+              <option value="3">3 stops</option>
+              <option value="4">4 stops</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Additional information</span>
+            <select id="Additional_Info">
+              <option value="No info" selected>No info (Standard)</option>
+              <option value="In-flight meal not included">In-flight meal not included</option>
+              <option value="No check-in baggage included">No check-in baggage included</option>
+              <option value="1 Short layover">1 Short layover</option>
+              <option value="1 Long layover">1 Long layover</option>
+              <option value="Business class">Business class</option>
+              <option value="Change airports">Change airports</option>
+            </select>
+          </label>
         </div>
 
         <div class="form-footer">
-          <div class="secure-note"><span>⌁</span> Your details are used only to generate this estimate.</div>
-          <button class="primary-btn submit-btn" type="submit" id="predictBtn">Predict airfare <span>→</span></button>
+          <div class="secure-note">
+            <span>⌁</span> Uses Random Forest ensemble tree variance to compute realistic price ranges.
+          </div>
+          <button class="primary-btn submit-btn" type="submit" id="predictBtn">
+            Predict airfare <span>→</span>
+          </button>
         </div>
         <div id="errorMessage" class="message error-message" role="alert"></div>
       </form>
 
+      <!-- Prediction Result Display -->
       <div id="resultCard" class="result-card" aria-live="polite">
         <div class="result-icon">✦</div>
-        <div><span class="result-label">YOUR ESTIMATED AIRFARE</span><div class="result-price" id="predictedFare">₹0.00</div><p>This is an AI-generated estimate, not a confirmed airline ticket price.</p></div>
+        <div class="result-content">
+          <div class="result-top-bar">
+            <span class="result-label">YOUR ESTIMATED AIRFARE</span>
+            <span id="confidencePill" class="confidence-pill">High confidence</span>
+          </div>
+          <div class="result-price" id="predictedFare">₹0.00</div>
+          
+          <div class="result-range-box" id="rangeBox">
+            <span class="range-label">Realistic Fare Range:</span>
+            <strong id="fareRangeText">₹0 – ₹0</strong>
+            <small>(Based on 10th to 90th percentile tree ensemble estimates)</small>
+          </div>
+
+          <div class="result-chips" id="resultChips">
+            <!-- Dynamically populated tags -->
+          </div>
+          <p class="result-disclaimer">AI-generated estimation based on historical domestic airline pricing patterns.</p>
+        </div>
         <button type="button" id="resetBtn" class="reset-btn">Estimate another flight ↗</button>
       </div>
     </section>
 
     <section class="how-section" id="how-it-works">
-      <div class="center-heading"><div class="eyebrow"><span class="eyebrow-line"></span> SIMPLE. SMART. QUICK.</div><h2>How <span>SkyFare</span> works</h2><p>Three simple steps to get an intelligent airfare estimate.</p></div>
+      <div class="center-heading">
+        <div class="eyebrow"><span class="eyebrow-line"></span> SIMPLE. SMART. QUICK.</div>
+        <h2>How <span>SkyFare</span> works</h2>
+        <p>Three simple steps to get an intelligent airfare estimate.</p>
+      </div>
       <div class="steps">
-        <article class="step-card"><div class="step-icon">⌁</div><span class="step-count">STEP 01</span><h3>Enter flight details</h3><p>Provide your airline, route, journey date, timings and number of stops.</p></article>
-        <article class="step-card"><div class="step-icon">✧</div><span class="step-count">STEP 02</span><h3>AI analyses your trip</h3><p>Your information is processed by our trained Random Forest Regression model.</p></article>
-        <article class="step-card"><div class="step-icon">₹</div><span class="step-count">STEP 03</span><h3>Get your estimate</h3><p>See the predicted airfare in Indian rupees and plan your journey.</p></article>
+        <article class="step-card">
+          <div class="step-icon">⌁</div>
+          <span class="step-count">STEP 01</span>
+          <h3>Select your journey</h3>
+          <p>Choose your cities, preferred airline, date, and timings. Route and duration calculate automatically.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-icon">✧</div>
+          <span class="step-count">STEP 02</span>
+          <h3>Ensemble ML analysis</h3>
+          <p>100 decision trees evaluate routing, stops, seasonal trends, and carrier historical pricing.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-icon">₹</div>
+          <span class="step-count">STEP 03</span>
+          <h3>Expected fare & range</h3>
+          <p>Receive your predicted fare in Indian Rupees (INR) alongside upper and lower confidence bounds.</p>
+        </article>
       </div>
     </section>
 
     <section class="about-section" id="about">
-      <div class="about-mark">✈</div><div><div class="eyebrow"><span class="eyebrow-line"></span> ABOUT THE PROJECT</div><h2>Smarter insights for<br><span>better travel planning.</span></h2><p>SkyFare is an academic machine learning project that estimates flight ticket prices from journey and flight attributes. It uses a Random Forest Regression model through a FastAPI backend.</p><div class="tech-pills"><span>Python</span><span>Scikit-learn</span><span>Random Forest</span><span>FastAPI</span><span>HTML · CSS · JS</span></div></div>
+      <div class="about-mark">✈</div>
+      <div>
+        <div class="eyebrow"><span class="eyebrow-line"></span> ABOUT THE PROJECT</div>
+        <h2>Smarter insights for<br><span>better travel planning.</span></h2>
+        <p>SkyFare is a machine learning airfare estimation system built with FastAPI and Scikit-learn. It extracts and transforms journey parameters through a specialized ColumnTransformer pipeline into a Random Forest Regressor to provide instant price estimates with variance bounds.</p>
+        <div class="tech-pills">
+          <span>Python 3</span>
+          <span>FastAPI</span>
+          <span>Scikit-learn</span>
+          <span>Random Forest (100 Trees)</span>
+          <span>Pydantic v2</span>
+          <span>Joblib</span>
+          <span>HTML5 / CSS3 / ES6</span>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer><a class="brand" href="#"><span class="brand-icon">✈</span><span>sky<span class="brand-accent">fare</span></span></a><span>Machine learning project · Airfare Price Estimation</span><span>© 2026 SkyFare</span></footer>
+  <footer>
+    <a class="brand" href="#">
+      <span class="brand-icon">✈</span>
+      <span>sky<span class="brand-accent">fare</span></span>
+    </a>
+    <span>Machine learning project · Airfare Price Estimation</span>
+    <span>© 2026 SkyFare</span>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
