@@ -1,14 +1,30 @@
-```python
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 import joblib
 import pandas as pd
 import calendar
 
-app = FastAPI()
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
-# CORS Configuration
+
+# ==========================================
+# 1. INITIALIZE FASTAPI
+# ==========================================
+
+app = FastAPI(
+    title="SkyFare Airfare Prediction API",
+    version="2.0"
+)
+
+
+# ==========================================
+# 2. CORS CONFIGURATION
+# ==========================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -21,395 +37,447 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load ML Model and Preprocessor
-model = joblib.load("flight_model.pkl")
-preprocessor = joblib.load("preprocessor.pkl")
+
+# ==========================================
+# 3. LOAD MODEL AND PREPROCESSOR
+# ==========================================
+
+try:
+    model = joblib.load("flight_model.pkl")
+    preprocessor = joblib.load("preprocessor.pkl")
+
+except Exception as e:
+    raise RuntimeError(f"Unable to load ML files: {e}")
 
 
-# Valid values extracted from Data_Train.xlsx
+# ==========================================
+# 4. EXTRACT VALID CATEGORIES FROM PREPROCESSOR
+# ==========================================
 
-VALID_AIRLINES = {
-    "Air Asia",
-    "Air India",
-    "GoAir",
-    "IndiGo",
-    "Jet Airways",
-    "Jet Airways Business",
-    "Multiple carriers",
-    "Multiple carriers Premium economy",
-    "SpiceJet",
-    "Trujet",
-    "Vistara",
-    "Vistara Premium economy"
-}
+def extract_categories(obj, columns=None):
 
-VALID_SOURCES = {
-    "Banglore",
-    "Chennai",
-    "Delhi",
-    "Kolkata",
-    "Mumbai"
-}
+    categories_dict = {}
 
-VALID_DESTINATIONS = {
-    "Banglore",
-    "Cochin",
-    "Delhi",
-    "Hyderabad",
-    "Kolkata",
-    "New Delhi"
-}
+    if isinstance(obj, OneHotEncoder):
 
-VALID_PAIRS = {
-    ("Banglore", "Delhi"),
-    ("Banglore", "New Delhi"),
-    ("Chennai", "Kolkata"),
-    ("Delhi", "Cochin"),
-    ("Kolkata", "Banglore"),
-    ("Mumbai", "Hyderabad")
-}
+        if hasattr(obj, "feature_names_in_"):
+            feature_names = list(obj.feature_names_in_)
 
-VALID_INFO = {
-    "1 Long layover",
-    "1 Short layover",
-    "2 Long layover",
-    "Business class",
-    "Change airports",
-    "In-flight meal not included",
-    "No Info",
-    "No check-in baggage included",
-    "No info",
-    "Red-eye flight"
-}
+        elif columns is not None:
+            feature_names = list(columns)
 
-VALID_ROUTES = {
-    'BLR → AMD → DEL',
-    'BLR → BBI → DEL',
-    'BLR → BDQ → DEL',
-    'BLR → BOM → AMD → DEL',
-    'BLR → BOM → BHO → DEL',
-    'BLR → BOM → DEL',
-    'BLR → BOM → IDR → DEL',
-    'BLR → BOM → IDR → GWL → DEL',
-    'BLR → BOM → IXC → DEL',
-    'BLR → BOM → JDH → DEL',
-    'BLR → BOM → NAG → DEL',
-    'BLR → BOM → UDR → DEL',
-    'BLR → CCU → BBI → DEL',
-    'BLR → CCU → BBI → HYD → DEL',
-    'BLR → CCU → BBI → HYD → VGA → DEL',
-    'BLR → CCU → DEL',
-    'BLR → CCU → GAU → DEL',
-    'BLR → COK → DEL',
-    'BLR → DEL',
-    'BLR → GAU → DEL',
-    'BLR → GOI → DEL',
-    'BLR → HBX → BOM → AMD → DEL',
-    'BLR → HBX → BOM → BHO → DEL',
-    'BLR → HBX → BOM → NAG → DEL',
-    'BLR → HYD → DEL',
-    'BLR → HYD → VGA → DEL',
-    'BLR → IDR → DEL',
-    'BLR → LKO → DEL',
-    'BLR → MAA → DEL',
-    'BLR → NAG → DEL',
-    'BLR → PNQ → DEL',
-    'BLR → STV → DEL',
-    'BLR → TRV → COK → DEL',
-    'BLR → VGA → DEL',
-    'BLR → VGA → HYD → DEL',
-    'BLR → VGA → VTZ → DEL',
-    'BOM → AMD → ISK → HYD',
-    'BOM → BBI → HYD',
-    'BOM → BDQ → DEL → HYD',
-    'BOM → BHO → DEL → HYD',
-    'BOM → BLR → CCU → BBI → HYD',
-    'BOM → BLR → HYD',
-    'BOM → CCU → HYD',
-    'BOM → COK → MAA → HYD',
-    'BOM → DED → DEL → HYD',
-    'BOM → DEL → HYD',
-    'BOM → GOI → HYD',
-    'BOM → GOI → PNQ → HYD',
-    'BOM → HYD',
-    'BOM → IDR → DEL → HYD',
-    'BOM → JAI → DEL → HYD',
-    'BOM → JDH → DEL → HYD',
-    'BOM → JDH → JAI → DEL → HYD',
-    'BOM → JLR → HYD',
-    'BOM → MAA → HYD',
-    'BOM → NDC → HYD',
-    'BOM → RPR → VTZ → HYD',
-    'BOM → UDR → DEL → HYD',
-    'BOM → VNS → DEL → HYD',
-    'CCU → AMD → BLR',
-    'CCU → BBI → BLR',
-    'CCU → BBI → BOM → BLR',
-    'CCU → BBI → HYD → BLR',
-    'CCU → BBI → IXR → DEL → BLR',
-    'CCU → BLR',
-    'CCU → BOM → AMD → BLR',
-    'CCU → BOM → BLR',
-    'CCU → BOM → COK → BLR',
-    'CCU → BOM → GOI → BLR',
-    'CCU → BOM → HBX → BLR',
-    'CCU → BOM → PNQ → BLR',
-    'CCU → BOM → TRV → BLR',
-    'CCU → DEL → AMD → BLR',
-    'CCU → DEL → BLR',
-    'CCU → DEL → COK → BLR',
-    'CCU → DEL → COK → TRV → BLR',
-    'CCU → DEL → VGA → BLR',
-    'CCU → GAU → BLR',
-    'CCU → GAU → DEL → BLR',
-    'CCU → GAU → IMF → DEL → BLR',
-    'CCU → HYD → BLR',
-    'CCU → IXA → BLR',
-    'CCU → IXB → BLR',
-    'CCU → IXB → DEL → BLR',
-    'CCU → IXR → BBI → BLR',
-    'CCU → IXR → DEL → BLR',
-    'CCU → IXZ → MAA → BLR',
-    'CCU → JAI → BOM → BLR',
-    'CCU → JAI → DEL → BLR',
-    'CCU → KNU → BLR',
-    'CCU → MAA → BLR',
-    'CCU → NAG → BLR',
-    'CCU → PAT → BLR',
-    'CCU → PNQ → BLR',
-    'CCU → RPR → HYD → BLR',
-    'CCU → VNS → DEL → BLR',
-    'CCU → VTZ → BLR',
-    'DEL → AMD → BOM → COK',
-    'DEL → AMD → COK',
-    'DEL → ATQ → BOM → COK',
-    'DEL → BBI → COK',
-    'DEL → BDQ → BOM → COK',
-    'DEL → BHO → BOM → COK',
-    'DEL → BLR → COK',
-    'DEL → BOM → COK',
-    'DEL → CCU → BOM → COK',
-    'DEL → COK',
-    'DEL → DED → BOM → COK',
-    'DEL → GOI → BOM → COK',
-    'DEL → GWL → IDR → BOM → COK',
-    'DEL → HYD → BOM → COK',
-    'DEL → HYD → COK',
-    'DEL → HYD → MAA → COK',
-    'DEL → IDR → BOM → COK',
-    'DEL → IXC → BOM → COK',
-    'DEL → IXU → BOM → COK',
-    'DEL → JAI → BOM → COK',
-    'DEL → JDH → BOM → COK',
-    'DEL → LKO → BOM → COK',
-    'DEL → LKO → COK',
-    'DEL → MAA → BOM → COK',
-    'DEL → MAA → COK',
-    'DEL → NAG → BOM → COK',
-    'DEL → PNQ → COK',
-    'DEL → RPR → NAG → BOM → COK',
-    'DEL → TRV → COK',
-    'DEL → UDR → BOM → COK',
-    'MAA → CCU'
+        else:
+            feature_names = []
+
+        if len(feature_names) == len(obj.categories_):
+
+            for column, categories in zip(
+                feature_names,
+                obj.categories_
+            ):
+
+                categories_dict[column] = {
+                    str(value).strip()
+                    for value in categories
+                }
+
+    elif isinstance(obj, Pipeline):
+
+        for _, step in obj.steps:
+
+            categories_dict.update(
+                extract_categories(step, columns)
+            )
+
+    elif isinstance(obj, ColumnTransformer):
+
+        for _, transformer, selected_columns in obj.transformers_:
+
+            if transformer == "drop" or transformer == "passthrough":
+                continue
+
+            categories_dict.update(
+                extract_categories(
+                    transformer,
+                    selected_columns
+                )
+            )
+
+    return categories_dict
+
+
+VALID_CATEGORIES = extract_categories(preprocessor)
+
+
+# Check that categorical validation is available.
+
+REQUIRED_CATEGORICAL_FIELDS = [
+    "Airline",
+    "Source",
+    "Destination",
+    "Route",
+    "Additional_Info"
+]
+
+for field in REQUIRED_CATEGORICAL_FIELDS:
+
+    if field not in VALID_CATEGORIES:
+
+        raise RuntimeError(
+            f"Could not extract valid categories for {field} "
+            "from preprocessor.pkl. Check your trained preprocessor."
+        )
+
+
+# ==========================================
+# 5. AIRPORT CODE MAPPING
+# ==========================================
+
+AIRPORT_CODES = {
+
+    "Banglore": "BLR",
+    "Chennai": "MAA",
+    "Delhi": "DEL",
+    "Kolkata": "CCU",
+    "Mumbai": "BOM",
+    "Cochin": "COK",
+    "Hyderabad": "HYD",
+    "New Delhi": "DEL"
+
 }
 
 
-# Request Model
+# ==========================================
+# 6. REQUEST MODEL
+# ==========================================
+
 class FlightDetails(BaseModel):
-    Airline: str
-    Source: str
-    Destination: str
-    Route: str
-    Additional_Info: str
 
-    Duration: int
-    Total_Stops: int
-    Journey_Day: int
-    Journey_Month: int
-    Dep_Hour: int
-    Dep_Minute: int
-    Arrival_Hour: int
-    Arrival_Minute: int
+    Airline: str = Field(min_length=1)
+    Source: str = Field(min_length=1)
+    Destination: str = Field(min_length=1)
+    Route: str = Field(min_length=1)
+    Additional_Info: str = Field(min_length=1)
 
+    Duration: int = Field(ge=1, le=2860)
 
-# Home
-@app.get("/")
-def home():
-    return {
-        "message": "Airfare Prediction API is running"
-    }
+    Total_Stops: int = Field(ge=0, le=4)
 
+    Journey_Day: int = Field(ge=1, le=31)
 
-# About
-@app.get("/about")
-def about():
-    return {
-        "project": "Airfare Price Prediction",
-        "model": "Random Forest Regression"
-    }
+    Journey_Month: int = Field(ge=1, le=12)
+
+    Dep_Hour: int = Field(ge=0, le=23)
+
+    Dep_Minute: int = Field(ge=0, le=59)
+
+    Arrival_Hour: int = Field(ge=0, le=23)
+
+    Arrival_Minute: int = Field(ge=0, le=59)
 
 
-# Prediction
-@app.post("/predict")
-def predict_fare(flight: FlightDetails):
+# ==========================================
+# 7. NORMALIZE ROUTE
+# ==========================================
 
+def normalize_route(route):
+
+    route = route.strip()
+
+    route = route.replace("->", "→")
+    route = route.replace("/", "→")
+
+    parts = [
+        part.strip()
+        for part in route.split("→")
+    ]
+
+    return " → ".join(parts)
+
+
+# ==========================================
+# 8. VALIDATE FLIGHT INPUT
+# ==========================================
+
+def validate_flight(flight):
+
+    # --------------------------------------
     # Airline validation
-    if flight.Airline not in VALID_AIRLINES:
+    # --------------------------------------
+
+    if flight.Airline not in VALID_CATEGORIES["Airline"]:
+
         raise HTTPException(
             status_code=400,
-            detail="Invalid airline selected."
+            detail=f"Invalid airline: {flight.Airline}"
         )
 
+
+    # --------------------------------------
     # Source validation
-    if flight.Source not in VALID_SOURCES:
+    # --------------------------------------
+
+    if flight.Source not in VALID_CATEGORIES["Source"]:
+
         raise HTTPException(
             status_code=400,
-            detail="Invalid source city."
+            detail=f"Invalid source: {flight.Source}"
         )
 
+
+    # --------------------------------------
     # Destination validation
-    if flight.Destination not in VALID_DESTINATIONS:
+    # --------------------------------------
+
+    if flight.Destination not in VALID_CATEGORIES["Destination"]:
+
         raise HTTPException(
             status_code=400,
-            detail="Invalid destination city."
+            detail=f"Invalid destination: {flight.Destination}"
         )
 
-    # Source and destination combination
-    if (flight.Source, flight.Destination) not in VALID_PAIRS:
-        raise HTTPException(
-            status_code=400,
-            detail="This source and destination combination is not available in the dataset."
-        )
 
+    # --------------------------------------
     # Same city validation
+    # --------------------------------------
+
     if flight.Source == flight.Destination:
+
         raise HTTPException(
             status_code=400,
             detail="Source and destination cannot be the same."
         )
 
-    # Route validation
-    route = flight.Route.strip()
 
-    if route not in VALID_ROUTES:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid route. Please enter a route from the training dataset."
-        )
-
-    # Route endpoint validation
-    airport_codes = {
-        "Banglore": "BLR",
-        "Chennai": "MAA",
-        "Delhi": "DEL",
-        "Kolkata": "CCU",
-        "Mumbai": "BOM",
-        "Cochin": "COK",
-        "Hyderabad": "HYD",
-        "New Delhi": "DEL"
-    }
-
-    route_parts = [part.strip() for part in route.split("→")]
-
-    if (
-        route_parts[0] != airport_codes[flight.Source]
-        or route_parts[-1] != airport_codes[flight.Destination]
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Route does not match the selected source and destination."
-        )
-
+    # --------------------------------------
     # Additional information validation
-    if flight.Additional_Info not in VALID_INFO:
+    # --------------------------------------
+
+    if flight.Additional_Info not in VALID_CATEGORIES["Additional_Info"]:
+
         raise HTTPException(
             status_code=400,
             detail="Invalid additional flight information."
         )
 
-    # Stops validation
-    if flight.Total_Stops not in range(5):
+
+    # --------------------------------------
+    # Route validation
+    # --------------------------------------
+
+    route = normalize_route(flight.Route)
+
+    if route not in VALID_CATEGORIES["Route"]:
+
         raise HTTPException(
             status_code=400,
-            detail="Total stops must be between 0 and 4."
+            detail=f"Invalid route: {flight.Route}"
         )
 
-    # Route and stops consistency
+
+    # --------------------------------------
+    # Route endpoint validation
+    # --------------------------------------
+
+    if flight.Source not in AIRPORT_CODES:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Unknown source airport."
+        )
+
+    if flight.Destination not in AIRPORT_CODES:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Unknown destination airport."
+        )
+
+    route_parts = [
+        part.strip()
+        for part in route.split("→")
+    ]
+
+    if len(route_parts) < 2:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid route format."
+        )
+
+    expected_source = AIRPORT_CODES[flight.Source]
+
+    expected_destination = AIRPORT_CODES[flight.Destination]
+
+    if route_parts[0] != expected_source:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Route does not match the selected source."
+        )
+
+    if route_parts[-1] != expected_destination:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Route does not match the selected destination."
+        )
+
+
+    # --------------------------------------
+    # Stop validation
+    # --------------------------------------
+
     actual_stops = len(route_parts) - 2
 
     if flight.Total_Stops != actual_stops:
+
         raise HTTPException(
             status_code=400,
-            detail="Total stops do not match the selected route."
+            detail="Number of stops does not match the selected route."
         )
 
-    # Duration validation (minutes)
-    if not 5 <= flight.Duration <= 2860:
-        raise HTTPException(
-            status_code=400,
-            detail="Duration must be between 5 and 2860 minutes."
-        )
 
-    # Journey day validation
-    if not 1 <= flight.Journey_Day <= 31:
-        raise HTTPException(
-            status_code=400,
-            detail="Journey day must be between 1 and 31."
-        )
-
-    # Journey month validation
-    if not 1 <= flight.Journey_Month <= 12:
-        raise HTTPException(
-            status_code=400,
-            detail="Journey month must be between 1 and 12."
-        )
+    # --------------------------------------
+    # Date validation
+    # --------------------------------------
 
     max_day = calendar.monthrange(
-        2020, flight.Journey_Month
+        2021,
+        flight.Journey_Month
     )[1]
 
     if flight.Journey_Day > max_day:
+
         raise HTTPException(
             status_code=400,
             detail="Invalid day for the selected month."
         )
 
-    # Departure time validation
-    if not 0 <= flight.Dep_Hour <= 23:
+
+    # --------------------------------------
+    # Duration validation
+    # --------------------------------------
+
+    if not 5 <= flight.Duration <= 2860:
+
         raise HTTPException(
             status_code=400,
-            detail="Departure hour must be between 0 and 23."
+            detail="Flight duration must be between 5 and 2860 minutes."
         )
 
-    if not 0 <= flight.Dep_Minute <= 59:
-        raise HTTPException(
-            status_code=400,
-            detail="Departure minute must be between 0 and 59."
-        )
 
-    # Arrival time validation
-    if not 0 <= flight.Arrival_Hour <= 23:
-        raise HTTPException(
-            status_code=400,
-            detail="Arrival hour must be between 0 and 23."
-        )
+# ==========================================
+# 9. HOME ENDPOINT
+# ==========================================
 
-    if not 0 <= flight.Arrival_Minute <= 59:
-        raise HTTPException(
-            status_code=400,
-            detail="Arrival minute must be between 0 and 59."
-        )
-
-    # Prepare input data
-    input_data = pd.DataFrame([flight.model_dump()])
-
-    # Preprocessing
-    processed_data = preprocessor.transform(input_data)
-
-    # Prediction
-    prediction = model.predict(processed_data)
+@app.get("/")
+def home():
 
     return {
-        "predicted_fare": round(float(prediction[0]), 2)
+        "message": "SkyFare Airfare Prediction API is running",
+        "status": "success"
     }
-```
+
+
+# ==========================================
+# 10. VERSION ENDPOINT
+# ==========================================
+
+@app.get("/version")
+def version():
+
+    return {
+        "version": "validation-v2",
+        "validation_enabled": True
+    }
+
+
+# ==========================================
+# 11. ABOUT ENDPOINT
+# ==========================================
+
+@app.get("/about")
+def about():
+
+    return {
+        "project": "Airfare Price Estimation and Fare Pattern Analysis",
+        "model": "Random Forest Regression",
+        "validation": "Enabled"
+    }
+
+
+# ==========================================
+# 12. PREDICTION ENDPOINT
+# ==========================================
+
+@app.post("/predict")
+def predict_fare(flight: FlightDetails):
+
+    # Step 1: Validate all inputs
+
+    validate_flight(flight)
+
+
+    # Step 2: Prepare input data
+
+    input_data = pd.DataFrame([
+        flight.model_dump()
+    ])
+
+    # Ensure the normalized route is used
+
+    input_data["Route"] = normalize_route(flight.Route)
+
+
+    # Step 3: Preprocess input
+
+    try:
+
+        processed_data = preprocessor.transform(input_data)
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unable to process flight details: {str(e)}"
+        )
+
+
+    # Step 4: Predict fare
+
+    try:
+
+        prediction = model.predict(processed_data)
+
+        fare = float(prediction[0])
+
+        if not pd.notna(fare) or fare <= 0:
+
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid fare prediction generated."
+            )
+
+    except HTTPException:
+        raise
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=500,
+            detail="Fare prediction failed."
+        )
+
+
+    # Step 5: Return prediction
+
+    return {
+
+        "predicted_fare": round(fare, 2),
+
+        "formatted_fare": f"₹{fare:,.0f}",
+
+        "currency": "INR"
+
+    }
