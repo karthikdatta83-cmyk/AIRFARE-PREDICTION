@@ -153,7 +153,7 @@ class FlightDetails(BaseModel):
     Route: str = Field(min_length=1)
     Additional_Info: str = Field(min_length=1)
 
-    Duration: int = Field(ge=1, le=2860)
+    Duration: int = Field(ge=5, le=2860)
 
     Total_Stops: int = Field(ge=0, le=4)
 
@@ -292,7 +292,7 @@ def validate_flight(flight):
         )
 
     max_day = calendar.monthrange(
-        2021,
+        2024,
         flight.Journey_Month
     )[1]
 

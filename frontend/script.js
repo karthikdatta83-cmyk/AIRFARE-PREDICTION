@@ -91,41 +91,30 @@ async function loadOptions() {
             "Select Additional Information"
         );
 
+        // Default additional info
+        if (options.additional_info.includes("No info")) {
+            infoSelect.value = "No info";
+        }
+
         // Default airline
-
         if (options.airlines.includes("IndiGo")) {
-
             airlineSelect.value = "IndiGo";
-
         }
 
         // Default source
-
         if (options.sources.includes("Delhi")) {
-
             sourceSelect.value = "Delhi";
-
         }
 
         updateDestinations();
-
         result.textContent = "";
-
     }
-
     catch (error) {
-
-        result.textContent =
-            "Error loading dropdowns: " + error.message;
-
+        result.textContent = "Error loading dropdowns: " + error.message;
     }
-
     finally {
-
         predictButton.disabled = false;
-
     }
-
 }
 
 
@@ -134,23 +123,11 @@ async function loadOptions() {
 // ======================================
 
 function updateDestinations() {
-
     const source = sourceSelect.value;
-
-    const availableRoutes = routeData.filter(item =>
-
-        item.source === source
-
-    );
+    const availableRoutes = routeData.filter(item => item.source === source);
 
     const destinations = [
-
-        ...new Set(
-
-            availableRoutes.map(item => item.destination)
-
-        )
-
+        ...new Set(availableRoutes.map(item => item.destination))
     ];
 
     populateDropdown(
@@ -159,22 +136,15 @@ function updateDestinations() {
         "Select Destination"
     );
 
-    routeSelect.innerHTML =
-        '<option value="">Select Route</option>';
+    routeSelect.innerHTML = '<option value="">Select Route</option>';
+    stopsSelect.innerHTML = '<option value="">Select Route First</option>';
 
-    stopsSelect.innerHTML =
-        '<option value="">Select Route First</option>';
-
-    // Select Mumbai if available
-
-    if (destinations.includes("Mumbai")) {
-
-        destinationSelect.value = "Mumbai";
-
+    // Select first destination by default
+    if (destinations.length > 0) {
+        destinationSelect.value = destinations[0];
     }
 
     updateRoutes();
-
 }
 
 
@@ -300,6 +270,11 @@ routeSelect.addEventListener("change", function() {
 form.addEventListener("submit", async function(event) {
 
     event.preventDefault();
+
+    if (!routeSelect.value || stopsSelect.value === "") {
+        result.textContent = "Please select a valid route first.";
+        return;
+    }
 
     const data = {
 

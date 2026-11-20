@@ -138,3 +138,19 @@ def test_predict_validation_errors():
     payload_zero_dur["Duration"] = 0
     r3 = client.post("/predict", json=payload_zero_dur)
     assert r3.status_code == 422
+
+    # Leap year Feb 29 (valid)
+    payload_feb29 = payload_bad_airline.copy()
+    payload_feb29["Airline"] = "IndiGo"
+    payload_feb29["Journey_Month"] = 2
+    payload_feb29["Journey_Day"] = 29
+    r_feb29 = client.post("/predict", json=payload_feb29)
+    assert r_feb29.status_code == 200
+
+    # Invalid Feb 30
+    payload_feb30 = payload_bad_airline.copy()
+    payload_feb30["Airline"] = "IndiGo"
+    payload_feb30["Journey_Month"] = 2
+    payload_feb30["Journey_Day"] = 30
+    r_feb30 = client.post("/predict", json=payload_feb30)
+    assert r_feb30.status_code == 400
