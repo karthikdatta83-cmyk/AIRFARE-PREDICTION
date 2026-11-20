@@ -1,606 +1,409 @@
-/**
- * SkyFare 2.5 — AI Flight Price Estimator Engine
- * Handles dynamic routing, duration calculation, interactive date strip,
- * multi-airline comparison, 7-day trend forecasting, and explainable AI.
- */
+const API_URL = "https://airfare-prediction-1.onrender.com";
 
-// Dedicated FastAPI Prediction Backend URL
-const BACKEND_PREDICT_URL = "https://airfare-prediction-1.onrender.com/predict";
+const form = document.getElementById("flightForm");
+const result = document.getElementById("result");
+const predictButton = document.getElementById("predictButton");
 
-function resolveApiUrl() {
-    if (window.location.protocol.startsWith("http")) {
-        // If served directly from the FastAPI backend (local port 8000 or the backend Render host)
-        if (window.location.port === "8000" || window.location.host.includes("airfare-prediction-1")) {
-            return `${window.location.origin}/predict`;
-        }
-    }
-    // In all other cases (e.g. airfare-price-estimation-z3wm static site, Live Server port 5500, GitHub Pages)
-    // always send prediction requests to the live backend service.
-    return BACKEND_PREDICT_URL;
-}
+const airlineSelect = document.getElementById("Airline");
+const sourceSelect = document.getElementById("Source");
+const destinationSelect = document.getElementById("Destination");
+const routeSelect = document.getElementById("Route");
+const infoSelect = document.getElementById("Additional_Info");
+const stopsSelect = document.getElementById("Total_Stops");
 
-let API_URL = resolveApiUrl();
+let routeData = [];
 
-// DOM Elements
-const form = document.getElementById("fareForm");
-const predictBtn = document.getElementById("predictBtn");
-const errorMessage = document.getElementById("errorMessage");
-const resultCard = document.getElementById("resultCard");
-const predictedFare = document.getElementById("predictedFare");
-const fareRangeText = document.getElementById("fareRangeText");
-const confidencePill = document.getElementById("confidencePill");
-const resultChips = document.getElementById("resultChips");
-const resetBtn = document.getElementById("resetBtn");
 
-const airlineInput = document.getElementById("Airline");
-const sourceInput = document.getElementById("Source");
-const destInput = document.getElementById("Destination");
-const routeInput = document.getElementById("Route");
-const routeSuggestions = document.getElementById("routeSuggestions");
-const stopsInput = document.getElementById("Total_Stops");
-const infoInput = document.getElementById("Additional_Info");
+// ======================================
+// 1. POPULATE DROPDOWN
+// ======================================
 
-const dateInput = document.getElementById("Journey_Date");
-const depTimeInput = document.getElementById("Dep_Time");
-const arrTimeInput = document.getElementById("Arrival_Time");
-const durationInput = document.getElementById("Duration");
-const durationBadge = document.getElementById("durationBadge");
-const nextDayBadge = document.getElementById("nextDayBadge");
-const dateCardsStrip = document.getElementById("dateCardsStrip");
+function populateDropdown(element, values, placeholder) {
 
-// Hero visual elements
-const heroSrcCode = document.getElementById("heroSrcCode");
-const heroSrcName = document.getElementById("heroSrcName");
-const heroDestCode = document.getElementById("heroDestCode");
-const heroDestName = document.getElementById("heroDestName");
-const heroRouteText = document.getElementById("heroRouteText");
+    element.innerHTML = "";
 
-// Rich Feature DOM Elements
-const advisoryCard = document.getElementById("advisoryCard");
-const advisoryBadge = document.getElementById("advisoryBadge");
-const advisoryHeadline = document.getElementById("advisoryHeadline");
-const advisoryMessage = document.getElementById("advisoryMessage");
+    const firstOption = document.createElement("option");
 
-const trendBars = document.getElementById("trendBars");
-const airlineGrid = document.getElementById("airlineGrid");
-const xaiList = document.getElementById("xaiList");
-const tradeoffText = document.getElementById("tradeoffText");
+    firstOption.value = "";
+    firstOption.textContent = placeholder;
 
-// Canonical City & Routes Knowledge
-const CITY_CODES = {
-    "Banglore": "BLR",
-    "Chennai": "MAA",
-    "Delhi": "DEL",
-    "Kolkata": "CCU",
-    "Mumbai": "BOM",
-    "Cochin": "COK",
-    "Hyderabad": "HYD",
-    "New Delhi": "DEL"
-};
+    element.appendChild(firstOption);
 
-const VALID_PAIRS = {
-    "Delhi": ["Cochin"],
-    "Banglore": ["New Delhi", "Delhi"],
-    "Mumbai": ["Hyderabad"],
-    "Kolkata": ["Banglore"],
-    "Chennai": ["Kolkata"]
-};
+    values.forEach(value => {
 
-// Common dataset transit routes by pair and stop count
-const KNOWN_ROUTES = {
-    "DEL->COK": {
-        0: ["DEL → COK"],
-        1: ["DEL → BOM → COK", "DEL → BLR → COK", "DEL → HYD → COK", "DEL → AMD → COK", "DEL → MAA → COK", "DEL → JAI → BOM → COK"],
-        2: ["DEL → AMD → BOM → COK", "DEL → ATQ → BOM → COK", "DEL → BDQ → BOM → COK", "DEL → BHO → BOM → COK", "DEL → CCU → BOM → COK", "DEL → GOI → BOM → COK"]
-    },
-    "BLR->DEL": {
-        0: ["BLR → DEL"],
-        1: ["BLR → BOM → DEL", "BLR → HYD → DEL", "BLR → MAA → DEL", "BLR → AMD → DEL", "BLR → GOI → DEL", "BLR → PNQ → DEL"],
-        2: ["BLR → BOM → AMD → DEL", "BLR → BOM → BHO → DEL", "BLR → BOM → IDR → DEL", "BLR → CCU → BBI → DEL"]
-    },
-    "BOM->HYD": {
-        0: ["BOM → HYD"],
-        1: ["BOM → DEL → HYD", "BOM → BLR → HYD", "BOM → MAA → HYD", "BOM → GOI → HYD", "BOM → CCU → HYD", "BOM → BBI → HYD"],
-        2: ["BOM → BDQ → DEL → HYD", "BOM → BHO → DEL → HYD", "BOM → GOI → PNQ → HYD", "BOM → IDR → DEL → HYD"]
-    },
-    "CCU->BLR": {
-        0: ["CCU → BLR"],
-        1: ["CCU → DEL → BLR", "CCU → BOM → BLR", "CCU → HYD → BLR", "CCU → MAA → BLR", "CCU → GAU → BLR", "CCU → BBI → BLR"],
-        2: ["CCU → BBI → BOM → BLR", "CCU → BOM → AMD → BLR", "CCU → BOM → COK → BLR", "CCU → DEL → AMD → BLR"]
-    },
-    "MAA->CCU": {
-        0: ["MAA → CCU"],
-        1: ["MAA → CCU"],
-        2: ["MAA → CCU"]
-    }
-};
+        const option = document.createElement("option");
 
-// Preset configurations
-const PRESETS = {
-    "del_cok": {
-        Airline: "IndiGo",
-        Source: "Delhi",
-        Destination: "Cochin",
-        Total_Stops: "1",
-        Dep_Time: "06:15",
-        Arrival_Time: "11:45",
-        Route: "DEL → BOM → COK",
-        Additional_Info: "No info"
-    },
-    "blr_del": {
-        Airline: "Air India",
-        Source: "Banglore",
-        Destination: "New Delhi",
-        Total_Stops: "0",
-        Dep_Time: "07:00",
-        Arrival_Time: "09:45",
-        Route: "BLR → DEL",
-        Additional_Info: "No info"
-    },
-    "bom_hyd": {
-        Airline: "SpiceJet",
-        Source: "Mumbai",
-        Destination: "Hyderabad",
-        Total_Stops: "0",
-        Dep_Time: "14:20",
-        Arrival_Time: "15:45",
-        Route: "BOM → HYD",
-        Additional_Info: "No info"
-    },
-    "ccu_blr": {
-        Airline: "Vistara",
-        Source: "Kolkata",
-        Destination: "Banglore",
-        Total_Stops: "1",
-        Dep_Time: "10:10",
-        Arrival_Time: "15:30",
-        Route: "CCU → DEL → BLR",
-        Additional_Info: "In-flight meal not included"
-    }
-};
+        option.value = value;
+        option.textContent = value;
 
-// Date Initialization
-const today = new Date();
-function formatDate(d) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+        element.appendChild(option);
 
-const formattedToday = formatDate(today);
-dateInput.min = formattedToday;
-dateInput.value = formattedToday;
-
-// Helper: Parse HH:MM into {hour, minute}
-function getTimeParts(value) {
-    if (!value || !value.includes(":")) return { hour: 0, minute: 0 };
-    const [hour, minute] = value.split(":").map(Number);
-    return { hour: Number.isFinite(hour) ? hour : 0, minute: Number.isFinite(minute) ? minute : 0 };
-}
-
-// Helper: Calculate duration between Dep_Time and Arrival_Time in minutes
-function calculateDuration() {
-    const dep = getTimeParts(depTimeInput.value);
-    const arr = getTimeParts(arrTimeInput.value);
-
-    let depMinutes = dep.hour * 60 + dep.minute;
-    let arrMinutes = arr.hour * 60 + arr.minute;
-
-    let isOvernight = false;
-    if (arrMinutes < depMinutes) {
-        arrMinutes += 24 * 60;
-        isOvernight = true;
-    } else if (arrMinutes === depMinutes) {
-        arrMinutes = depMinutes + 120;
-    }
-
-    const durationMin = arrMinutes - depMinutes;
-    durationInput.value = durationMin;
-
-    const hours = Math.floor(durationMin / 60);
-    const mins = durationMin % 60;
-    durationBadge.textContent = `${hours}h ${mins}m`;
-
-    if (isOvernight) {
-        nextDayBadge.style.display = "inline-block";
-    } else {
-        nextDayBadge.style.display = "none";
-    }
-}
-
-// Helper: Update route suggestions & auto-populate default route
-function syncRouteAndDestinations() {
-    const src = sourceInput.value;
-    const dest = destInput.value;
-    const stops = Number(stopsInput.value) || 0;
-
-    // Check valid destination pairing
-    if (src && VALID_PAIRS[src]) {
-        const allowed = VALID_PAIRS[src];
-        if (!allowed.includes(dest)) {
-            destInput.value = allowed[0];
-        }
-    }
-
-    const currentDest = destInput.value;
-    const sCode = CITY_CODES[src] || "DEL";
-    const dCode = CITY_CODES[currentDest] || "COK";
-    const pairKey = `${sCode}->${dCode}`;
-
-    // Update Datalist suggestions
-    routeSuggestions.innerHTML = "";
-    const pairRoutes = KNOWN_ROUTES[pairKey] || {};
-    const candidateRoutes = pairRoutes[stops] || pairRoutes[0] || [`${sCode} → ${dCode}`];
-
-    candidateRoutes.forEach((r) => {
-        const opt = document.createElement("option");
-        opt.value = r;
-        routeSuggestions.appendChild(opt);
     });
 
-    // Auto-populate route input with the best match
-    routeInput.value = candidateRoutes[0] || `${sCode} → ${dCode}`;
-
-    // Sync Hero Card
-    if (heroSrcCode) heroSrcCode.textContent = sCode;
-    if (heroSrcName) heroSrcName.textContent = src || "Source";
-    if (heroDestCode) heroDestCode.textContent = dCode;
-    if (heroDestName) heroDestName.textContent = currentDest || "Destination";
-    if (heroRouteText) heroRouteText.textContent = stops === 0 ? "NON-STOP FLIGHT" : `${stops} STOP TRANSIT`;
 }
 
-// Render the interactive 7-Day Date Calendar Strip in Section 2
-function renderDateStrip() {
-    if (!dateCardsStrip) return;
-    dateCardsStrip.innerHTML = "";
 
-    const selectedDateStr = dateInput.value || formattedToday;
-    const baseDate = new Date();
+// ======================================
+// 2. LOAD OPTIONS FROM BACKEND
+// ======================================
 
-    const dayTags = ["🟢 Low", "🟡 Med", "🔴 High", "🟢 Low", "🟡 Med", "🔴 Peak", "🔴 Peak"];
-
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(baseDate);
-        d.setDate(baseDate.getDate() + i);
-        const iso = formatDate(d);
-        const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
-        const monthDay = d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
-        const isSelected = (iso === selectedDateStr);
-
-        const card = document.createElement("div");
-        card.className = `date-card ${isSelected ? "active" : ""}`;
-        card.innerHTML = `
-            <span class="date-card-day">${dayName}</span>
-            <span class="date-card-date">${monthDay}</span>
-            <span class="date-card-tag ${i % 2 === 0 ? "tag-low" : (i % 3 === 0 ? "tag-high" : "tag-med")}">${dayTags[i]}</span>
-        `;
-
-        card.addEventListener("click", () => {
-            dateInput.value = iso;
-            renderDateStrip();
-        });
-
-        dateCardsStrip.appendChild(card);
-    }
-}
-
-// Quick Date Pill Handlers
-document.querySelectorAll(".date-chip").forEach((btn) => {
-    btn.addEventListener("click", () => {
-        const days = Number(btn.dataset.days) || 0;
-        const target = new Date();
-        target.setDate(target.getDate() + days);
-        dateInput.value = formatDate(target);
-        renderDateStrip();
-    });
-});
-
-dateInput.addEventListener("change", renderDateStrip);
-
-// Auto-convert standard typed arrows '->' or '--' to unicode arrow ' → '
-routeInput.addEventListener("input", (e) => {
-    let val = e.target.value;
-    if (val.includes("->") || val.includes("-->") || val.includes(" - ")) {
-        e.target.value = val.replace(/\s*(?:-->|->|–>|—>|\sto\s|-)\s*/gi, " → ").toUpperCase();
-    }
-});
-
-// Event Listeners for dynamic synchronization
-depTimeInput.addEventListener("input", calculateDuration);
-arrTimeInput.addEventListener("input", calculateDuration);
-
-sourceInput.addEventListener("change", syncRouteAndDestinations);
-destInput.addEventListener("change", syncRouteAndDestinations);
-stopsInput.addEventListener("change", syncRouteAndDestinations);
-
-// Quick Preset Click Handlers
-document.querySelectorAll(".preset-pill").forEach((btn) => {
-    btn.addEventListener("click", () => {
-        const presetKey = btn.dataset.preset;
-        const config = PRESETS[presetKey];
-        if (!config) return;
-
-        airlineInput.value = config.Airline;
-        sourceInput.value = config.Source;
-        destInput.value = config.Destination;
-        stopsInput.value = config.Total_Stops;
-        depTimeInput.value = config.Dep_Time;
-        arrTimeInput.value = config.Arrival_Time;
-        infoInput.value = config.Additional_Info;
-
-        calculateDuration();
-        syncRouteAndDestinations();
-        if (config.Route) {
-            routeInput.value = config.Route;
-        }
-
-        document.getElementById("predictor").scrollIntoView({ behavior: "smooth" });
-    });
-});
-
-function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = "block";
-}
-
-function clearMessages() {
-    errorMessage.textContent = "";
-    errorMessage.style.display = "none";
-}
-
-// Form Submission & ML Prediction
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    clearMessages();
-    resultCard.classList.remove("show");
-
-    if (!dateInput.value) {
-        showError("Please select a journey date.");
-        return;
-    }
-
-    const journeyDate = new Date(`${dateInput.value}T00:00:00`);
-    const departure = getTimeParts(depTimeInput.value);
-    const arrival = getTimeParts(arrTimeInput.value);
-    const source = sourceInput.value;
-    const destination = destInput.value;
-
-    if (source === destination) {
-        showError("Source and destination must be different cities.");
-        return;
-    }
-
-    const duration = Number(durationInput.value);
-    const stops = Number(stopsInput.value);
-
-    if (!Number.isFinite(duration) || duration <= 0) {
-        showError("Please provide a valid flight duration in minutes.");
-        return;
-    }
-
-    let routeText = routeInput.value.trim();
-    if (!routeText) {
-        routeText = `${CITY_CODES[source] || "DEL"} → ${CITY_CODES[destination] || "COK"}`;
-    }
-
-    const payload = {
-        Airline: airlineInput.value,
-        Source: source,
-        Destination: destination,
-        Route: routeText,
-        Additional_Info: infoInput.value,
-        Duration: duration,
-        Total_Stops: stops,
-        Journey_Day: journeyDate.getDate(),
-        Journey_Month: journeyDate.getMonth() + 1,
-        Dep_Hour: departure.hour,
-        Dep_Minute: departure.minute,
-        Arrival_Hour: arrival.hour,
-        Arrival_Minute: arrival.minute
-    };
-
-    predictBtn.disabled = true;
-    predictBtn.innerHTML = '<span class="spinner"></span> Running ensemble analysis...';
-    predictBtn.style.opacity = "0.75";
+async function loadOptions() {
 
     try {
-        let response;
-        let responseText;
 
-        try {
-            response = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            responseText = await response.text();
-        } catch (fetchErr) {
-            if (API_URL !== BACKEND_PREDICT_URL) {
-                console.warn("Primary API URL unreachable. Retrying with production backend...", fetchErr);
-                API_URL = BACKEND_PREDICT_URL;
-                response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                responseText = await response.text();
-            } else {
-                throw fetchErr;
-            }
-        }
+        result.textContent = "Loading flight options...";
 
-        // If a static server returned an empty 200 response (content-length: 0), fallback to backend
-        if ((!responseText || !responseText.trim()) && API_URL !== BACKEND_PREDICT_URL) {
-            console.warn("Empty response from origin, retrying with backend:", BACKEND_PREDICT_URL);
-            API_URL = BACKEND_PREDICT_URL;
-            response = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            responseText = await response.text();
-        }
+        predictButton.disabled = true;
 
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch {
-            throw new Error(`The prediction server returned an invalid response (HTTP ${response.status}). Please check https://airfare-prediction-1.onrender.com/health`);
-        }
+        const response = await fetch(`${API_URL}/options`);
 
         if (!response.ok) {
-            const detail = data.detail;
-            throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail || data));
+
+            throw new Error("Unable to load flight options.");
+
         }
 
-        if (typeof data.predicted_fare !== "number") {
-            throw new Error("Invalid prediction response received from the backend.");
+        const options = await response.json();
+
+        routeData = options.routes;
+
+        // Airline dropdown
+
+        populateDropdown(
+            airlineSelect,
+            options.airlines,
+            "Select Airline"
+        );
+
+        // Source dropdown
+
+        populateDropdown(
+            sourceSelect,
+            options.sources,
+            "Select Source"
+        );
+
+        // Additional information dropdown
+
+        populateDropdown(
+            infoSelect,
+            options.additional_info,
+            "Select Additional Information"
+        );
+
+        // Default airline
+
+        if (options.airlines.includes("IndiGo")) {
+
+            airlineSelect.value = "IndiGo";
+
         }
 
-        // 1. Primary Fare & Range
-        const formattedPrice = data.formatted_fare || `₹${Math.round(data.predicted_fare).toLocaleString("en-IN")}`;
-        predictedFare.textContent = formattedPrice;
+        // Default source
 
-        if (data.fare_range && data.fare_range.formatted_range) {
-            fareRangeText.textContent = data.fare_range.formatted_range;
-        } else {
-            const low = Math.round(data.predicted_fare * 0.92);
-            const high = Math.round(data.predicted_fare * 1.12);
-            fareRangeText.textContent = `₹${low.toLocaleString("en-IN")} – ₹${high.toLocaleString("en-IN")}`;
+        if (options.sources.includes("Delhi")) {
+
+            sourceSelect.value = "Delhi";
+
         }
 
-        if (confidencePill && data.confidence) {
-            confidencePill.textContent = `${data.confidence} confidence`;
-        }
+        updateDestinations();
 
-        // 2. Flight Summary Chips
-        resultChips.innerHTML = "";
-        const summary = data.flight_summary || {};
-        const chips = [
-            payload.Airline,
-            summary.route || payload.Route,
-            `${stops === 0 ? "Non-stop" : stops + (stops === 1 ? " stop" : " stops")}`,
-            durationBadge.textContent
-        ];
+        result.textContent = "";
 
-        chips.forEach((c) => {
-            if (c) {
-                const chip = document.createElement("span");
-                chip.className = "result-chip";
-                chip.textContent = c;
-                resultChips.appendChild(chip);
-            }
+    }
+
+    catch (error) {
+
+        result.textContent =
+            "Error loading dropdowns: " + error.message;
+
+    }
+
+    finally {
+
+        predictButton.disabled = false;
+
+    }
+
+}
+
+
+// ======================================
+// 3. UPDATE DESTINATION DROPDOWN
+// ======================================
+
+function updateDestinations() {
+
+    const source = sourceSelect.value;
+
+    const availableRoutes = routeData.filter(item =>
+
+        item.source === source
+
+    );
+
+    const destinations = [
+
+        ...new Set(
+
+            availableRoutes.map(item => item.destination)
+
+        )
+
+    ];
+
+    populateDropdown(
+        destinationSelect,
+        destinations,
+        "Select Destination"
+    );
+
+    routeSelect.innerHTML =
+        '<option value="">Select Route</option>';
+
+    stopsSelect.innerHTML =
+        '<option value="">Select Route First</option>';
+
+    // Select Mumbai if available
+
+    if (destinations.includes("Mumbai")) {
+
+        destinationSelect.value = "Mumbai";
+
+    }
+
+    updateRoutes();
+
+}
+
+
+// ======================================
+// 4. UPDATE ROUTE DROPDOWN
+// ======================================
+
+function updateRoutes() {
+
+    const source = sourceSelect.value;
+
+    const destination = destinationSelect.value;
+
+    const matchingRoutes = routeData.filter(item =>
+
+        item.source === source &&
+        item.destination === destination
+
+    );
+
+    routeSelect.innerHTML =
+        '<option value="">Select Route</option>';
+
+    matchingRoutes.forEach(item => {
+
+        const option = document.createElement("option");
+
+        option.value = item.route;
+
+        option.textContent = item.route;
+
+        routeSelect.appendChild(option);
+
+    });
+
+    stopsSelect.innerHTML =
+        '<option value="">Select Route First</option>';
+
+    // Automatically select first available route
+
+    if (matchingRoutes.length > 0) {
+
+        routeSelect.value = matchingRoutes[0].route;
+
+        updateStops();
+
+    }
+
+}
+
+
+// ======================================
+// 5. UPDATE TOTAL STOPS
+// ======================================
+
+function updateStops() {
+
+    const selectedRoute = routeSelect.value;
+
+    const selected = routeData.find(item =>
+
+        item.source === sourceSelect.value &&
+        item.destination === destinationSelect.value &&
+        item.route === selectedRoute
+
+    );
+
+    stopsSelect.innerHTML = "";
+
+    if (!selected) {
+
+        stopsSelect.innerHTML =
+            '<option value="">Select Route First</option>';
+
+        return;
+
+    }
+
+    const option = document.createElement("option");
+
+    option.value = selected.stops;
+
+    option.textContent = selected.stops === 0
+        ? "Non-stop"
+        : selected.stops + (
+            selected.stops === 1 ? " Stop" : " Stops"
+        );
+
+    stopsSelect.appendChild(option);
+
+    stopsSelect.value = String(selected.stops);
+
+}
+
+
+// ======================================
+// 6. DROPDOWN EVENT LISTENERS
+// ======================================
+
+sourceSelect.addEventListener("change", function() {
+
+    updateDestinations();
+
+});
+
+destinationSelect.addEventListener("change", function() {
+
+    updateRoutes();
+
+});
+
+routeSelect.addEventListener("change", function() {
+
+    updateStops();
+
+});
+
+
+// ======================================
+// 7. PREDICT FARE
+// ======================================
+
+form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const data = {
+
+        Airline: airlineSelect.value,
+
+        Source: sourceSelect.value,
+
+        Destination: destinationSelect.value,
+
+        Route: routeSelect.value,
+
+        Additional_Info: infoSelect.value,
+
+        Duration: Number(
+            document.getElementById("Duration").value
+        ),
+
+        Total_Stops: Number(stopsSelect.value),
+
+        Journey_Day: Number(
+            document.getElementById("Journey_Day").value
+        ),
+
+        Journey_Month: Number(
+            document.getElementById("Journey_Month").value
+        ),
+
+        Dep_Hour: Number(
+            document.getElementById("Dep_Hour").value
+        ),
+
+        Dep_Minute: Number(
+            document.getElementById("Dep_Minute").value
+        ),
+
+        Arrival_Hour: Number(
+            document.getElementById("Arrival_Hour").value
+        ),
+
+        Arrival_Minute: Number(
+            document.getElementById("Arrival_Minute").value
+        )
+
+    };
+
+    result.textContent = "Predicting airfare...";
+
+    predictButton.disabled = true;
+
+    try {
+
+        const response = await fetch(`${API_URL}/predict`, {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json"
+
+            },
+
+            body: JSON.stringify(data)
+
         });
 
-        // 3. Feature: Buy Now vs Wait Advisory
-        if (data.advisory && advisoryCard) {
-            advisoryBadge.textContent = data.advisory.action;
-            advisoryBadge.className = `advisory-badge badge-${data.advisory.badge_color || "info"}`;
-            advisoryHeadline.textContent = data.advisory.headline;
-            advisoryMessage.textContent = data.advisory.message;
-            advisoryCard.style.display = "flex";
+        const output = await response.json();
+
+        if (!response.ok) {
+
+            const message = Array.isArray(output.detail)
+
+                ? output.detail.map(error => error.msg).join(", ")
+
+                : output.detail || "Prediction failed.";
+
+            throw new Error(message);
+
         }
 
-        // 4. Feature: 7-Day Fare Forecast Curve
-        if (data.seven_day_trend && trendBars) {
-            trendBars.innerHTML = "";
-            const maxTrendFare = Math.max(...data.seven_day_trend.map(t => t.fare));
+        result.innerHTML =
 
-            data.seven_day_trend.forEach((item) => {
-                const heightPct = Math.max(22, Math.round((item.fare / maxTrendFare) * 100));
-                const barWrapper = document.createElement("div");
-                barWrapper.className = "trend-bar-wrapper";
+            "<h2>Predicted Airfare</h2>" +
 
-                barWrapper.innerHTML = `
-                    <span class="trend-bar-price">${item.formatted_fare}</span>
-                    <div class="trend-bar ${item.is_cheapest ? "cheapest" : ""} ${item.is_selected ? "selected" : ""}" style="height:${heightPct}%">
-                        ${item.is_cheapest ? '<span class="cheapest-badge">⭐ LOW</span>' : ""}
-                    </div>
-                    <span class="trend-bar-label">${item.day_name} ${item.date.split("-")[2]}</span>
-                `;
+            "<h1>" + output.formatted_fare + "</h1>";
 
-                barWrapper.title = `Click to switch date to ${item.display_day} (${item.formatted_fare})`;
-                barWrapper.addEventListener("click", () => {
-                    dateInput.value = item.date;
-                    renderDateStrip();
-                    form.requestSubmit();
-                });
-
-                trendBars.appendChild(barWrapper);
-            });
-        }
-
-        // 5. Feature: Multi-Airline Fare Comparison Matrix
-        if (data.airline_comparison && airlineGrid) {
-            airlineGrid.innerHTML = "";
-            data.airline_comparison.forEach((comp) => {
-                const card = document.createElement("div");
-                card.className = `airline-card ${comp.is_cheapest ? "cheapest" : ""} ${comp.is_selected ? "selected" : ""}`;
-
-                card.innerHTML = `
-                    <div class="airline-card-top">
-                        <span class="airline-name">${comp.airline}</span>
-                        ${comp.is_cheapest ? '<span class="badge-cheapest">Lowest Fare</span>' : (comp.is_selected ? '<span class="badge-selected">Selected</span>' : '')}
-                    </div>
-                    <span class="airline-tier">${comp.tier}</span>
-                    <div class="airline-fare">${comp.formatted_fare}</div>
-                `;
-
-                card.title = `Click to select ${comp.airline}`;
-                card.addEventListener("click", () => {
-                    airlineInput.value = comp.airline;
-                    form.requestSubmit();
-                });
-
-                airlineGrid.appendChild(card);
-            });
-        }
-
-        // 6. Feature: Explainable AI (XAI) Cost Drivers
-        if (data.xai_breakdown && xaiList) {
-            xaiList.innerHTML = "";
-            data.xai_breakdown.forEach((factor) => {
-                const row = document.createElement("div");
-                row.className = "xai-item";
-                row.innerHTML = `
-                    <span class="xai-factor">${factor.factor}</span>
-                    <span class="xai-amount">${factor.formatted}</span>
-                `;
-                xaiList.appendChild(row);
-            });
-        }
-
-        // 7. Feature: Direct vs Connecting Trade-off
-        if (data.tradeoff && tradeoffText) {
-            tradeoffText.textContent = data.tradeoff.insight;
-        }
-
-        resultCard.classList.add("show");
-        resultCard.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    } catch (error) {
-        console.error("Prediction Error:", error);
-        if (error.message.includes("Failed to fetch") || error instanceof TypeError) {
-            showError("Unable to connect to the prediction backend. If running locally, start uvicorn (uvicorn main:app --reload). If on Render, the free instance may take 30s to wake up.");
-        } else {
-            showError(error.message);
-        }
-    } finally {
-        predictBtn.disabled = false;
-        predictBtn.innerHTML = 'Predict airfare <span>→</span>';
-        predictBtn.style.opacity = "1";
     }
+
+    catch(error) {
+
+        result.textContent = "Error: " + error.message;
+
+    }
+
+    finally {
+
+        predictButton.disabled = false;
+
+    }
+
 });
 
-resetBtn.addEventListener("click", () => {
-    form.reset();
-    clearMessages();
-    resultCard.classList.remove("show");
-    calculateDuration();
-    syncRouteAndDestinations();
-    renderDateStrip();
-    document.getElementById("predictor").scrollIntoView({ behavior: "smooth" });
-});
 
-// Initialize on page load
-calculateDuration();
-syncRouteAndDestinations();
-renderDateStrip();
+// ======================================
+// 8. INITIALIZE
+// ======================================
+
+loadOptions();
