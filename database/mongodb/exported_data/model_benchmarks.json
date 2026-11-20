@@ -1,0 +1,76 @@
+[
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34debb"
+    },
+    "model_name": "Linear Regression (Baseline)",
+    "algorithm_category": "Linear",
+    "evaluated_at": {
+      "$date": "2026-11-20T20:42:09.375Z"
+    },
+    "hyperparameters": {
+      "fit_intercept": true,
+      "normalize": false
+    },
+    "is_active_model": false,
+    "mae": 1980.2,
+    "r2_score": 0.612,
+    "rmse": 2740.5
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34debc"
+    },
+    "model_name": "Decision Tree Regressor",
+    "algorithm_category": "Tree-based",
+    "evaluated_at": {
+      "$date": "2026-11-20T20:42:09.375Z"
+    },
+    "hyperparameters": {
+      "max_depth": 16,
+      "min_samples_split": 10
+    },
+    "is_active_model": false,
+    "mae": 1450.4,
+    "r2_score": 0.724,
+    "rmse": 2190.8
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34debd"
+    },
+    "model_name": "Random Forest Regressor",
+    "algorithm_category": "Tree Ensemble (Bagging)",
+    "evaluated_at": {
+      "$date": "2026-11-20T20:42:09.375Z"
+    },
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 25,
+      "min_samples_split": 5
+    },
+    "is_active_model": true,
+    "mae": 1120.1,
+    "r2_score": 0.8842,
+    "rmse": 1640.25
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34debe"
+    },
+    "model_name": "Gradient Boosting / XGBoost",
+    "algorithm_category": "Tree Ensemble (Boosting)",
+    "evaluated_at": {
+      "$date": "2026-11-20T20:42:09.375Z"
+    },
+    "hyperparameters": {
+      "n_estimators": 150,
+      "learning_rate": 0.08,
+      "max_depth": 6
+    },
+    "is_active_model": false,
+    "mae": 1180.4,
+    "r2_score": 0.8715,
+    "rmse": 1710.6
+  }
+]

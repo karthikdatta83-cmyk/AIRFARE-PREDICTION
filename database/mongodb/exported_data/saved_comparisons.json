@@ -1,0 +1,48 @@
+[
+  {
+    "_id": {
+      "$oid": "6b0063498cbeb9cb5738f1c0"
+    },
+    "session_id": "sess-demo-849201",
+    "custom_label": "Budget Option - SpiceJet Non-Stop",
+    "airline": "SpiceJet",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "total_stops": 0,
+    "duration_minutes": 195,
+    "predicted_fare": 4890.0,
+    "fare_range_display": "\u20b94,400 \u2013 \u20b95,320",
+    "user_note": "Cheapest direct flight option for May vacation",
+    "is_favorite": true,
+    "created_at": {
+      "$date": "2026-11-20T20:42:09.417Z"
+    },
+    "updated_at": {
+      "$date": "2026-11-20T20:42:09.417Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b0063498cbeb9cb5738f1c1"
+    },
+    "session_id": "sess-demo-849201",
+    "custom_label": "Full Service - Air India",
+    "airline": "Air India",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 HYD \u2192 COK",
+    "total_stops": 1,
+    "duration_minutes": 405,
+    "predicted_fare": 8920.0,
+    "fare_range_display": "\u20b98,100 \u2013 \u20b99,850",
+    "user_note": "Includes check-in baggage, but 1 stop layover",
+    "is_favorite": false,
+    "created_at": {
+      "$date": "2026-11-20T20:42:09.417Z"
+    },
+    "updated_at": {
+      "$date": "2026-11-20T20:42:09.417Z"
+    }
+  }
+]
