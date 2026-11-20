@@ -1,8 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Airfare Price Prediction</title>
+
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        input,
+        select {
+            width: 100%;
+            padding: 13px;
+            margin: 8px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            box-sizing: border-box;
+            font-size: 15px;
+            background-color: white;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -10,50 +53,127 @@
     <div class="container">
 
         <h1>Airfare Price Prediction</h1>
+
         <p>Predict your flight ticket price using Machine Learning</p>
 
         <form id="flightForm">
 
-            <label>Airline</label>
-            <input type="text" id="Airline" value="IndiGo" required>
+            <label for="Airline">Airline</label>
+            <select id="Airline" required>
+                <option value="">Loading Airlines...</option>
+            </select>
 
-            <label>Source</label>
-            <input type="text" id="Source" value="Delhi" required>
+            <label for="Source">Source</label>
+            <select id="Source" required>
+                <option value="">Loading Sources...</option>
+            </select>
 
-            <label>Destination</label>
-            <input type="text" id="Destination" value="Mumbai" required>
+            <label for="Destination">Destination</label>
+            <select id="Destination" required>
+                <option value="">Select Source First</option>
+            </select>
 
-            <label>Route</label>
-            <input type="text" id="Route" value="DEL → BOM" required>
+            <label for="Route">Route</label>
+            <select id="Route" required>
+                <option value="">Select Destination First</option>
+            </select>
 
-            <label>Additional Information</label>
-            <input type="text" id="Additional_Info" value="No info" required>
+            <label for="Additional_Info">Additional Information</label>
+            <select id="Additional_Info" required>
+                <option value="">Loading Options...</option>
+            </select>
 
-            <label>Duration (Minutes)</label>
-            <input type="number" id="Duration" value="135" required>
+            <label for="Duration">Duration (Minutes)</label>
+            <input
+                type="number"
+                id="Duration"
+                min="5"
+                max="2860"
+                placeholder="Enter duration in minutes"
+                required
+            >
 
-            <label>Total Stops</label>
-            <input type="number" id="Total_Stops" value="1" required>
+            <label for="Total_Stops">Total Stops</label>
+            <select id="Total_Stops" required>
+                <option value="">Select Route First</option>
+            </select>
 
-            <label>Journey Day</label>
-            <input type="number" id="Journey_Day" value="20" min="1" max="31" required>
+            <h3>Journey Date</h3>
 
-            <label>Journey Month</label>
-            <input type="number" id="Journey_Month" value="12" min="1" max="12" required>
+            <label for="Journey_Day">Journey Day</label>
+            <input
+                type="number"
+                id="Journey_Day"
+                min="1"
+                max="31"
+                placeholder="Enter day"
+                required
+            >
 
-            <label>Departure Hour</label>
-            <input type="number" id="Dep_Hour" value="8" min="0" max="23" required>
+            <label for="Journey_Month">Journey Month</label>
+            <select id="Journey_Month" required>
+                <option value="">Select Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
 
-            <label>Departure Minute</label>
-            <input type="number" id="Dep_Minute" value="10" min="0" max="59" required>
+            <h3>Departure Time</h3>
 
-            <label>Arrival Hour</label>
-            <input type="number" id="Arrival_Hour" value="10" min="0" max="23" required>
+            <label for="Dep_Hour">Departure Hour</label>
+            <input
+                type="number"
+                id="Dep_Hour"
+                min="0"
+                max="23"
+                placeholder="0 - 23"
+                required
+            >
 
-            <label>Arrival Minute</label>
-            <input type="number" id="Arrival_Minute" value="15" min="0" max="59" required>
+            <label for="Dep_Minute">Departure Minute</label>
+            <input
+                type="number"
+                id="Dep_Minute"
+                min="0"
+                max="59"
+                placeholder="0 - 59"
+                required
+            >
 
-            <button type="submit">Predict Fare</button>
+            <h3>Arrival Time</h3>
+
+            <label for="Arrival_Hour">Arrival Hour</label>
+            <input
+                type="number"
+                id="Arrival_Hour"
+                min="0"
+                max="23"
+                placeholder="0 - 23"
+                required
+            >
+
+            <label for="Arrival_Minute">Arrival Minute</label>
+            <input
+                type="number"
+                id="Arrival_Minute"
+                min="0"
+                max="59"
+                placeholder="0 - 59"
+                required
+            >
+
+            <button type="submit" id="predictButton">
+                Predict Airfare
+            </button>
 
         </form>
 
