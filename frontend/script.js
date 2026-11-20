@@ -364,6 +364,8 @@ form.addEventListener("submit", async function(event) {
                 ${comparisonsHtml}
             </div>
         `;
+
+        loadRecentHistory();
     }
     catch(error) {
         result.textContent = "Error: " + error.message;
@@ -375,7 +377,39 @@ form.addEventListener("submit", async function(event) {
 
 
 // ======================================
-// 8. INITIALIZE
+// 8. RECENT HISTORY
+// ======================================
+
+async function loadRecentHistory() {
+    try {
+        const response = await fetch(`${API_URL}/history`);
+        if (!response.ok) return;
+        const data = await response.json();
+        const container = document.getElementById("recentHistory");
+        const list = document.getElementById("historyList");
+
+        if (data.history && data.history.length > 0) {
+            container.style.display = "block";
+            list.innerHTML = data.history.map(item => `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                    <div>
+                        <strong>${item.airline}</strong>: ${item.source_city} &rarr; ${item.destination_city}
+                    </div>
+                    <div style="color: #2563eb; font-weight: bold; font-size: 14px;">
+                        ₹${Number(item.predicted_fare).toLocaleString("en-IN")}
+                    </div>
+                </div>
+            `).join("");
+        }
+    } catch (e) {
+        // Silently skip if history unavailable
+    }
+}
+
+
+// ======================================
+// 9. INITIALIZE
 // ======================================
 
 loadOptions();
+loadRecentHistory();

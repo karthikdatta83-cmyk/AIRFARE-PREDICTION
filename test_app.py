@@ -12,6 +12,7 @@ def test_health_check():
     assert data["status"] == "healthy"
     assert data["model_loaded"] is True
     assert data["preprocessor_loaded"] is True
+    assert "database_connected" in data
 
 
 def test_version():
@@ -24,6 +25,25 @@ def test_about():
     response = client.get("/about")
     assert response.status_code == 200
     assert "project" in response.json()
+
+
+def test_benchmarks_endpoint():
+    response = client.get("/benchmarks")
+    assert response.status_code == 200
+    data = response.json()
+    assert "benchmarks" in data
+    assert len(data["benchmarks"]) >= 4
+    rf = [b for b in data["benchmarks"] if "Random Forest" in b["model_name"]]
+    assert len(rf) == 1
+    assert rf[0]["r2_score"] > 0.8
+
+
+def test_history_endpoint():
+    response = client.get("/history")
+    assert response.status_code == 200
+    data = response.json()
+    assert "history" in data
+    assert "source" in data
 
 
 def test_options_endpoint():

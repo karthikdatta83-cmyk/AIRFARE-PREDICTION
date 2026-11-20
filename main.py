@@ -48,6 +48,28 @@ except Exception as e:
 
 
 # ==========================================
+# 3.1 MONGODB DATABASE CONFIGURATION
+# ==========================================
+
+import os
+from datetime import datetime
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+db = None
+mongo_connected = False
+
+try:
+    from pymongo import MongoClient
+    mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=1000)
+    mongo_client.admin.command("ping")
+    db = mongo_client["airfare_prediction_db"]
+    mongo_connected = True
+except Exception:
+    db = None
+    mongo_connected = False
+
+
+# ==========================================
 # 4. EXTRACT VALID CATEGORIES
 # ==========================================
 
@@ -329,7 +351,8 @@ def health():
     return {
         "status": "healthy",
         "model_loaded": model is not None,
-        "preprocessor_loaded": preprocessor is not None
+        "preprocessor_loaded": preprocessor is not None,
+        "database_connected": mongo_connected
     }
 
 
@@ -543,6 +566,29 @@ def predict_fare(flight: FlightDetails):
         except Exception:
             pass
 
+    # Feature 5: Log prediction to MongoDB if database is available
+    if db is not None:
+        try:
+            db.prediction_logs.insert_one({
+                "session_id": "web-session",
+                "airline": flight.Airline,
+                "source_city": flight.Source,
+                "destination_city": flight.Destination,
+                "route": normalize_route(flight.Route),
+                "journey_date": f"2024-{flight.Journey_Month:02d}-{flight.Journey_Day:02d}",
+                "duration_minutes": flight.Duration,
+                "total_stops": flight.Total_Stops,
+                "predicted_fare": round(fare, 2),
+                "confidence": "High",
+                "advisory": {
+                    "action": booking_advice,
+                    "headline": fare_category
+                },
+                "created_at": datetime.now()
+            })
+        except Exception:
+            pass
+
     return {
         "predicted_fare": round(fare, 2),
         "formatted_fare": f"₹{fare:,.0f}",
@@ -553,3 +599,91 @@ def predict_fare(flight: FlightDetails):
         "booking_advice": booking_advice,
         "comparisons": comparisons
     }
+
+
+# ==========================================
+# 14. MODEL BENCHMARKS ENDPOINT (Step 8)
+# ==========================================
+
+@app.get("/benchmarks")
+def get_benchmarks():
+    if db is not None:
+        try:
+            records = list(db.model_benchmarks.find({}, {"_id": 0}))
+            if records:
+                return {"benchmarks": records, "source": "mongodb"}
+        except Exception:
+            pass
+
+    # Static fallback from training pipeline benchmarks
+    return {
+        "benchmarks": [
+            {
+                "model_name": "Random Forest Regressor",
+                "algorithm_category": "Tree Ensemble (Bagging)",
+                "r2_score": 0.8842,
+                "rmse": 1640.25,
+                "mae": 1120.10,
+                "is_active_model": True
+            },
+            {
+                "model_name": "Gradient Boosting / XGBoost",
+                "algorithm_category": "Tree Ensemble (Boosting)",
+                "r2_score": 0.8715,
+                "rmse": 1710.60,
+                "mae": 1180.40,
+                "is_active_model": False
+            },
+            {
+                "model_name": "Decision Tree Regressor",
+                "algorithm_category": "Tree-based",
+                "r2_score": 0.7240,
+                "rmse": 2190.80,
+                "mae": 1450.40,
+                "is_active_model": False
+            },
+            {
+                "model_name": "Linear Regression (Baseline)",
+                "algorithm_category": "Linear",
+                "r2_score": 0.6120,
+                "rmse": 2740.50,
+                "mae": 1980.20,
+                "is_active_model": False
+            }
+        ],
+        "source": "fallback"
+    }
+
+
+# ==========================================
+# 15. RECENT PREDICTION HISTORY ENDPOINT
+# ==========================================
+
+@app.get("/history")
+def get_prediction_history(limit: int = 5):
+    if db is not None:
+        try:
+            records = list(
+                db.prediction_logs.find(
+                    {},
+                    {
+                        "_id": 0,
+                        "airline": 1,
+                        "source_city": 1,
+                        "destination_city": 1,
+                        "duration_minutes": 1,
+                        "predicted_fare": 1,
+                        "created_at": 1
+                    }
+                )
+                .sort("created_at", -1)
+                .limit(limit)
+            )
+            for r in records:
+                if isinstance(r.get("created_at"), datetime):
+                    r["created_at"] = r["created_at"].strftime("%Y-%m-%d %H:%M")
+            return {"history": records, "source": "mongodb"}
+        except Exception:
+            pass
+
+    return {"history": [], "source": "empty"}
