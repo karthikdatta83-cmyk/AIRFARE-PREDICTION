@@ -1,6 +1,7 @@
 /**
- * SkyFare 2.0 — AI Flight Price Estimator Engine
- * Handles dynamic routing, duration calculation, city pairing, and ML API communication.
+ * SkyFare 2.5 — AI Flight Price Estimator Engine
+ * Handles dynamic routing, duration calculation, interactive date strip,
+ * multi-airline comparison, 7-day trend forecasting, and explainable AI.
  */
 
 // Dedicated FastAPI Prediction Backend URL
@@ -45,6 +46,7 @@ const arrTimeInput = document.getElementById("Arrival_Time");
 const durationInput = document.getElementById("Duration");
 const durationBadge = document.getElementById("durationBadge");
 const nextDayBadge = document.getElementById("nextDayBadge");
+const dateCardsStrip = document.getElementById("dateCardsStrip");
 
 // Hero visual elements
 const heroSrcCode = document.getElementById("heroSrcCode");
@@ -52,6 +54,17 @@ const heroSrcName = document.getElementById("heroSrcName");
 const heroDestCode = document.getElementById("heroDestCode");
 const heroDestName = document.getElementById("heroDestName");
 const heroRouteText = document.getElementById("heroRouteText");
+
+// Rich Feature DOM Elements
+const advisoryCard = document.getElementById("advisoryCard");
+const advisoryBadge = document.getElementById("advisoryBadge");
+const advisoryHeadline = document.getElementById("advisoryHeadline");
+const advisoryMessage = document.getElementById("advisoryMessage");
+
+const trendBars = document.getElementById("trendBars");
+const airlineGrid = document.getElementById("airlineGrid");
+const xaiList = document.getElementById("xaiList");
+const tradeoffText = document.getElementById("tradeoffText");
 
 // Canonical City & Routes Knowledge
 const CITY_CODES = {
@@ -146,9 +159,13 @@ const PRESETS = {
     }
 };
 
-// Set minimum date to today
+// Date Initialization
 const today = new Date();
-const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+function formatDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const formattedToday = formatDate(today);
 dateInput.min = formattedToday;
 dateInput.value = formattedToday;
 
@@ -169,11 +186,9 @@ function calculateDuration() {
 
     let isOvernight = false;
     if (arrMinutes < depMinutes) {
-        // Flight arrives next calendar day
         arrMinutes += 24 * 60;
         isOvernight = true;
     } else if (arrMinutes === depMinutes) {
-        // Assume 24h or invalid; default to 2h
         arrMinutes = depMinutes + 120;
     }
 
@@ -232,6 +247,54 @@ function syncRouteAndDestinations() {
     if (heroRouteText) heroRouteText.textContent = stops === 0 ? "NON-STOP FLIGHT" : `${stops} STOP TRANSIT`;
 }
 
+// Render the interactive 7-Day Date Calendar Strip in Section 2
+function renderDateStrip() {
+    if (!dateCardsStrip) return;
+    dateCardsStrip.innerHTML = "";
+
+    const selectedDateStr = dateInput.value || formattedToday;
+    const baseDate = new Date();
+
+    const dayTags = ["🟢 Low", "🟡 Med", "🔴 High", "🟢 Low", "🟡 Med", "🔴 Peak", "🔴 Peak"];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() + i);
+        const iso = formatDate(d);
+        const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+        const monthDay = d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+        const isSelected = (iso === selectedDateStr);
+
+        const card = document.createElement("div");
+        card.className = `date-card ${isSelected ? "active" : ""}`;
+        card.innerHTML = `
+            <span class="date-card-day">${dayName}</span>
+            <span class="date-card-date">${monthDay}</span>
+            <span class="date-card-tag ${i % 2 === 0 ? "tag-low" : (i % 3 === 0 ? "tag-high" : "tag-med")}">${dayTags[i]}</span>
+        `;
+
+        card.addEventListener("click", () => {
+            dateInput.value = iso;
+            renderDateStrip();
+        });
+
+        dateCardsStrip.appendChild(card);
+    }
+}
+
+// Quick Date Pill Handlers
+document.querySelectorAll(".date-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const days = Number(btn.dataset.days) || 0;
+        const target = new Date();
+        target.setDate(target.getDate() + days);
+        dateInput.value = formatDate(target);
+        renderDateStrip();
+    });
+});
+
+dateInput.addEventListener("change", renderDateStrip);
+
 // Auto-convert standard typed arrows '->' or '--' to unicode arrow ' → '
 routeInput.addEventListener("input", (e) => {
     let val = e.target.value;
@@ -269,7 +332,6 @@ document.querySelectorAll(".preset-pill").forEach((btn) => {
             routeInput.value = config.Route;
         }
 
-        // Smooth scroll to form
         document.getElementById("predictor").scrollIntoView({ behavior: "smooth" });
     });
 });
@@ -284,7 +346,7 @@ function clearMessages() {
     errorMessage.style.display = "none";
 }
 
-// Form Submission
+// Form Submission & ML Prediction
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearMessages();
@@ -336,7 +398,7 @@ form.addEventListener("submit", async (event) => {
     };
 
     predictBtn.disabled = true;
-    predictBtn.innerHTML = '<span class="spinner"></span> Analyzing flight...';
+    predictBtn.innerHTML = '<span class="spinner"></span> Running ensemble analysis...';
     predictBtn.style.opacity = "0.75";
 
     try {
@@ -393,13 +455,8 @@ form.addEventListener("submit", async (event) => {
             throw new Error("Invalid prediction response received from the backend.");
         }
 
-        // Format and render results
-        const formattedPrice = data.formatted_fare || new Intl.NumberFormat("en-IN", {
-            style: "currency",
-            currency: "INR",
-            maximumFractionDigits: 0
-        }).format(data.predicted_fare);
-
+        // 1. Primary Fare & Range
+        const formattedPrice = data.formatted_fare || `₹${Math.round(data.predicted_fare).toLocaleString("en-IN")}`;
         predictedFare.textContent = formattedPrice;
 
         if (data.fare_range && data.fare_range.formatted_range) {
@@ -414,7 +471,7 @@ form.addEventListener("submit", async (event) => {
             confidencePill.textContent = `${data.confidence} confidence`;
         }
 
-        // Render flight summary tags
+        // 2. Flight Summary Chips
         resultChips.innerHTML = "";
         const summary = data.flight_summary || {};
         const chips = [
@@ -432,6 +489,89 @@ form.addEventListener("submit", async (event) => {
                 resultChips.appendChild(chip);
             }
         });
+
+        // 3. Feature: Buy Now vs Wait Advisory
+        if (data.advisory && advisoryCard) {
+            advisoryBadge.textContent = data.advisory.action;
+            advisoryBadge.className = `advisory-badge badge-${data.advisory.badge_color || "info"}`;
+            advisoryHeadline.textContent = data.advisory.headline;
+            advisoryMessage.textContent = data.advisory.message;
+            advisoryCard.style.display = "flex";
+        }
+
+        // 4. Feature: 7-Day Fare Forecast Curve
+        if (data.seven_day_trend && trendBars) {
+            trendBars.innerHTML = "";
+            const maxTrendFare = Math.max(...data.seven_day_trend.map(t => t.fare));
+
+            data.seven_day_trend.forEach((item) => {
+                const heightPct = Math.max(22, Math.round((item.fare / maxTrendFare) * 100));
+                const barWrapper = document.createElement("div");
+                barWrapper.className = "trend-bar-wrapper";
+
+                barWrapper.innerHTML = `
+                    <span class="trend-bar-price">${item.formatted_fare}</span>
+                    <div class="trend-bar ${item.is_cheapest ? "cheapest" : ""} ${item.is_selected ? "selected" : ""}" style="height:${heightPct}%">
+                        ${item.is_cheapest ? '<span class="cheapest-badge">⭐ LOW</span>' : ""}
+                    </div>
+                    <span class="trend-bar-label">${item.day_name} ${item.date.split("-")[2]}</span>
+                `;
+
+                barWrapper.title = `Click to switch date to ${item.display_day} (${item.formatted_fare})`;
+                barWrapper.addEventListener("click", () => {
+                    dateInput.value = item.date;
+                    renderDateStrip();
+                    form.requestSubmit();
+                });
+
+                trendBars.appendChild(barWrapper);
+            });
+        }
+
+        // 5. Feature: Multi-Airline Fare Comparison Matrix
+        if (data.airline_comparison && airlineGrid) {
+            airlineGrid.innerHTML = "";
+            data.airline_comparison.forEach((comp) => {
+                const card = document.createElement("div");
+                card.className = `airline-card ${comp.is_cheapest ? "cheapest" : ""} ${comp.is_selected ? "selected" : ""}`;
+
+                card.innerHTML = `
+                    <div class="airline-card-top">
+                        <span class="airline-name">${comp.airline}</span>
+                        ${comp.is_cheapest ? '<span class="badge-cheapest">Lowest Fare</span>' : (comp.is_selected ? '<span class="badge-selected">Selected</span>' : '')}
+                    </div>
+                    <span class="airline-tier">${comp.tier}</span>
+                    <div class="airline-fare">${comp.formatted_fare}</div>
+                `;
+
+                card.title = `Click to select ${comp.airline}`;
+                card.addEventListener("click", () => {
+                    airlineInput.value = comp.airline;
+                    form.requestSubmit();
+                });
+
+                airlineGrid.appendChild(card);
+            });
+        }
+
+        // 6. Feature: Explainable AI (XAI) Cost Drivers
+        if (data.xai_breakdown && xaiList) {
+            xaiList.innerHTML = "";
+            data.xai_breakdown.forEach((factor) => {
+                const row = document.createElement("div");
+                row.className = "xai-item";
+                row.innerHTML = `
+                    <span class="xai-factor">${factor.factor}</span>
+                    <span class="xai-amount">${factor.formatted}</span>
+                `;
+                xaiList.appendChild(row);
+            });
+        }
+
+        // 7. Feature: Direct vs Connecting Trade-off
+        if (data.tradeoff && tradeoffText) {
+            tradeoffText.textContent = data.tradeoff.insight;
+        }
 
         resultCard.classList.add("show");
         resultCard.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -456,9 +596,11 @@ resetBtn.addEventListener("click", () => {
     resultCard.classList.remove("show");
     calculateDuration();
     syncRouteAndDestinations();
+    renderDateStrip();
     document.getElementById("predictor").scrollIntoView({ behavior: "smooth" });
 });
 
 // Initialize on page load
 calculateDuration();
 syncRouteAndDestinations();
+renderDateStrip();

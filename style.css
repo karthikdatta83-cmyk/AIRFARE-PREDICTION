@@ -42,3 +42,96 @@ footer{max-width:1200px;margin:auto;padding:25px 28px 32px;display:flex;align-it
 .result-chips{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
 .result-chip{font-size:10px;font-weight:600;color:#cfe2ff;background:#ffffff12;padding:4px 10px;border-radius:6px;border:1px solid #ffffff18}
 .result-disclaimer{font-size:9px;color:#89a2c3;margin-top:6px}
+
+/* ========================================================
+   SkyFare 2.5 — Interactive Date Strip & ML Features
+   ======================================================== */
+.field-date-group{display:flex;flex-direction:column;gap:8px}
+.quick-dates-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.date-chip{border:1px solid #dce4f0;background:#f8faff;border-radius:12px;padding:3px 9px;font:600 10px 'DM Sans',sans-serif;color:#496185;cursor:pointer;transition:.15s}
+.date-chip:hover{background:#4779ff;color:#fff;border-color:#4779ff}
+
+.date-strip-container{margin-top:16px;padding:14px 18px;background:#f5f8fd;border:1px solid #e5edf7;border-radius:12px}
+.date-strip-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.date-strip-title{font:700 11px Manrope,sans-serif;color:#2c4060}
+.date-strip-hint{font-size:9px;color:#8596ac}
+.date-cards-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.date-card{padding:9px 6px;background:#fff;border:1px solid #dfe6f2;border-radius:10px;text-align:center;cursor:pointer;transition:all .2s ease;display:flex;flex-direction:column;gap:3px}
+.date-card:hover{transform:translateY(-2px);border-color:#4779ff;box-shadow:0 4px 12px #4779ff18}
+.date-card.active{background:linear-gradient(135deg,#12294f,#081b39);border-color:#4779ff;color:#fff;box-shadow:0 4px 15px #11284d25}
+.date-card-day{font:700 10px Manrope;color:#355380}
+.date-card.active .date-card-day{color:#79e1e0}
+.date-card-date{font-size:9px;color:#78889e}
+.date-card.active .date-card-date{color:#cfe2ff}
+.date-card-tag{font-size:8px;font-weight:700;padding:2px 4px;border-radius:4px;margin-top:2px;display:inline-block}
+.tag-low{background:#e6f8f0;color:#18805a}
+.tag-med{background:#fff8e6;color:#b7791f}
+.tag-high{background:#ffebee;color:#c53030}
+
+/* Advisory Banner */
+.advisory-card{display:flex;align-items:center;gap:14px;padding:14px 18px;background:#ffffff12;border:1px solid #ffffff24;border-radius:12px;margin:12px 0}
+.advisory-badge{font:800 11px Manrope;padding:5px 12px;border-radius:8px;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
+.badge-danger{background:#e53e3e;color:#fff}
+.badge-warning{background:#dd6b20;color:#fff}
+.badge-info{background:#3182ce;color:#fff}
+.badge-success{background:#38a169;color:#fff}
+.advisory-text b{display:block;font:700 13px Manrope;color:#fff;margin-bottom:2px}
+.advisory-text p{font-size:10px;color:#adc3e2;line-height:1.4}
+
+/* 7-Day Trend Chart */
+.trend-section{margin:14px 0;padding:16px 20px;background:#ffffff0d;border:1px solid #ffffff18;border-radius:12px}
+.trend-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.trend-title{font:700 12px Manrope;color:#7fe0e5}
+.trend-subtitle{font-size:9px;color:#8ba2c2}
+.trend-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:140px;padding-top:20px}
+.trend-bar-wrapper{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;cursor:pointer;transition:.15s}
+.trend-bar-wrapper:hover .trend-bar{filter:brightness(1.2)}
+.trend-bar{width:100%;background:linear-gradient(180deg,#4779ff,#2b51bc);border-radius:6px 6px 0 0;min-height:15px;transition:all .3s ease;position:relative}
+.trend-bar.cheapest{background:linear-gradient(180deg,#38d39f,#1e9870);box-shadow:0 0 14px #38d39f40}
+.trend-bar.selected{background:linear-gradient(180deg,#7fe0e5,#3498db);box-shadow:0 0 14px #7fe0e550}
+.trend-bar-price{font:700 9px Manrope;color:#fff;margin-bottom:4px;white-space:nowrap}
+.trend-bar-label{font-size:9px;color:#8ba3c5;margin-top:6px;white-space:nowrap}
+.cheapest-badge{position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;font:800 7px Manrope;padding:1px 5px;border-radius:4px;white-space:nowrap}
+
+/* Airline Comparison Grid */
+.airline-comp-section{margin:14px 0;padding:16px 20px;background:#ffffff0d;border:1px solid #ffffff18;border-radius:12px}
+.comp-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.comp-title{font:700 12px Manrope;color:#7fe0e5}
+.comp-subtitle{font-size:9px;color:#8ba2c2}
+.airline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.airline-card{padding:12px 14px;background:#ffffff10;border:1px solid #ffffff1c;border-radius:10px;cursor:pointer;transition:.2s;position:relative}
+.airline-card:hover{transform:translateY(-2px);background:#ffffff18;border-color:#4779ff}
+.airline-card.cheapest{border-color:#38d39f;background:#38d39f15}
+.airline-card.selected{border-color:#7fe0e5;background:#7fe0e515}
+.airline-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.airline-name{font:700 12px Manrope;color:#fff}
+.airline-tier{font-size:8px;color:#94a9c7}
+.airline-fare{font:800 16px Manrope;color:#7fe0e5;margin-top:4px}
+.badge-cheapest{font:700 7px Manrope;background:#22c55e;color:#fff;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.badge-selected{font:700 7px Manrope;background:#3b82f6;color:#fff;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+
+/* Explainable AI (XAI) */
+.xai-section{margin:14px 0;padding:16px 20px;background:#ffffff0d;border:1px solid #ffffff18;border-radius:12px}
+.xai-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.xai-title{font:700 12px Manrope;color:#7fe0e5}
+.xai-subtitle{font-size:9px;color:#8ba2c2}
+.xai-list{display:flex;flex-direction:column;gap:8px}
+.xai-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#ffffff08;border-radius:8px;font-size:10px}
+.xai-factor{color:#cfe0f7}
+.xai-amount{font:700 11px Manrope;color:#89e4df}
+
+/* Tradeoff Box */
+.tradeoff-card{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff10;border:1px solid #ffffff1c;border-radius:10px;margin-top:12px}
+.tradeoff-icon{font-size:22px}
+.tradeoff-body b{display:block;font:700 11px Manrope;color:#fff;margin-bottom:2px}
+.tradeoff-body p{font-size:10px;color:#a3bad9}
+
+@media(max-width:850px){
+  .date-cards-strip{grid-template-columns:repeat(4,1fr)}
+  .airline-grid{grid-template-columns:repeat(2,1fr)}
+  .trend-bars{gap:6px}
+}
+@media(max-width:600px){
+  .date-cards-strip{grid-template-columns:repeat(2,1fr)}
+  .airline-grid{grid-template-columns:1fr}
+}
