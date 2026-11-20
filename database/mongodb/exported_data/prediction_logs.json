@@ -1,0 +1,912 @@
+[
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e4"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "IndiGo",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-24",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 12033.44,
+    "fare_range": {
+      "min": 10950.43,
+      "max": 13357.12
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-17T12:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e5"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-06-02",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 7711.02,
+    "fare_range": {
+      "min": 7017.03,
+      "max": 8559.23
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-19T01:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e6"
+    },
+    "session_id": "sess-user-102941",
+    "airline": "IndiGo",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-05-23",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 6379.11,
+    "fare_range": {
+      "min": 5804.99,
+      "max": 7080.81
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-11T19:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e7"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-06-26",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 17347.46,
+    "fare_range": {
+      "min": 15786.19,
+      "max": 19255.68
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-13T01:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e8"
+    },
+    "session_id": "sess-user-102941",
+    "airline": "GoAir",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-05-07",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 6755.13,
+    "fare_range": {
+      "min": 6147.17,
+      "max": 7498.19
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-15T11:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9e9"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "IndiGo",
+    "source_city": "Banglore",
+    "destination_city": "Delhi",
+    "route": "BLR \u2192 DEL",
+    "journey_date": "2024-06-26",
+    "duration_minutes": 165,
+    "total_stops": 0,
+    "predicted_fare": 4294.69,
+    "fare_range": {
+      "min": 3908.17,
+      "max": 4767.11
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-15T08:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ea"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-05-18",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 10400.86,
+    "fare_range": {
+      "min": 9464.78,
+      "max": 11544.95
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-06T07:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9eb"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "GoAir",
+    "source_city": "Banglore",
+    "destination_city": "New Delhi",
+    "route": "BLR \u2192 BOM \u2192 DEL",
+    "journey_date": "2024-05-23",
+    "duration_minutes": 345,
+    "total_stops": 1,
+    "predicted_fare": 9315.06,
+    "fare_range": {
+      "min": 8476.7,
+      "max": 10339.72
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-07T08:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ec"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "IndiGo",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-05-28",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 4418.49,
+    "fare_range": {
+      "min": 4020.83,
+      "max": 4904.52
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-16T17:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ed"
+    },
+    "session_id": "sess-user-381920",
+    "airline": "Air India",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-05-12",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 6043.88,
+    "fare_range": {
+      "min": 5499.93,
+      "max": 6708.71
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-07T08:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ee"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "SpiceJet",
+    "source_city": "Banglore",
+    "destination_city": "Delhi",
+    "route": "BLR \u2192 DEL",
+    "journey_date": "2024-05-20",
+    "duration_minutes": 165,
+    "total_stops": 0,
+    "predicted_fare": 4006.5,
+    "fare_range": {
+      "min": 3645.91,
+      "max": 4447.22
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-05T22:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ef"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "SpiceJet",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-06-09",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 11459.75,
+    "fare_range": {
+      "min": 10428.37,
+      "max": 12720.32
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-18T05:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f0"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-27",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 16656.59,
+    "fare_range": {
+      "min": 15157.5,
+      "max": 18488.81
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-15T18:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f1"
+    },
+    "session_id": "sess-user-381920",
+    "airline": "GoAir",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-06-07",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 6376.49,
+    "fare_range": {
+      "min": 5802.61,
+      "max": 7077.9
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-19T13:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f2"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Air India",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-09",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 16146.91,
+    "fare_range": {
+      "min": 14693.69,
+      "max": 17923.07
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-10T05:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f3"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "SpiceJet",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 HYD \u2192 COK",
+    "journey_date": "2024-06-19",
+    "duration_minutes": 410,
+    "total_stops": 1,
+    "predicted_fare": 7023.59,
+    "fare_range": {
+      "min": 6391.47,
+      "max": 7796.18
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-16T01:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f4"
+    },
+    "session_id": "sess-user-102941",
+    "airline": "Air Asia",
+    "source_city": "Kolkata",
+    "destination_city": "Banglore",
+    "route": "CCU \u2192 DEL \u2192 BLR",
+    "journey_date": "2024-06-03",
+    "duration_minutes": 510,
+    "total_stops": 1,
+    "predicted_fare": 8169.86,
+    "fare_range": {
+      "min": 7434.57,
+      "max": 9068.54
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-18T03:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f5"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "GoAir",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-06-20",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 6059.87,
+    "fare_range": {
+      "min": 5514.48,
+      "max": 6726.46
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-17T22:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f6"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Air India",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-06-18",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 6214.28,
+    "fare_range": {
+      "min": 5654.99,
+      "max": 6897.85
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-13T03:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f7"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 BOM \u2192 COK",
+    "journey_date": "2024-06-25",
+    "duration_minutes": 375,
+    "total_stops": 1,
+    "predicted_fare": 9546.97,
+    "fare_range": {
+      "min": 8687.74,
+      "max": 10597.14
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-06T02:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f8"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "Air Asia",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-24",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 10272.44,
+    "fare_range": {
+      "min": 9347.92,
+      "max": 11402.41
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-18T05:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9f9"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "Air Asia",
+    "source_city": "Banglore",
+    "destination_city": "New Delhi",
+    "route": "BLR \u2192 NAG \u2192 DEL",
+    "journey_date": "2024-06-27",
+    "duration_minutes": 420,
+    "total_stops": 1,
+    "predicted_fare": 8090.13,
+    "fare_range": {
+      "min": 7362.02,
+      "max": 8980.04
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-12T16:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9fa"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "Vistara",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-20",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 15356.52,
+    "fare_range": {
+      "min": 13974.43,
+      "max": 17045.74
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-15T14:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9fb"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "Air India",
+    "source_city": "Banglore",
+    "destination_city": "Delhi",
+    "route": "BLR \u2192 DEL",
+    "journey_date": "2024-05-02",
+    "duration_minutes": 165,
+    "total_stops": 0,
+    "predicted_fare": 5310.27,
+    "fare_range": {
+      "min": 4832.35,
+      "max": 5894.4
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-15T10:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9fc"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "Vistara",
+    "source_city": "Banglore",
+    "destination_city": "New Delhi",
+    "route": "BLR \u2192 DEL",
+    "journey_date": "2024-05-05",
+    "duration_minutes": 170,
+    "total_stops": 0,
+    "predicted_fare": 7965.61,
+    "fare_range": {
+      "min": 7248.71,
+      "max": 8841.83
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-13T17:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9fd"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "Air India",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-06-07",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 14028.53,
+    "fare_range": {
+      "min": 12765.96,
+      "max": 15571.67
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-12T00:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9fe"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "GoAir",
+    "source_city": "Mumbai",
+    "destination_city": "Hyderabad",
+    "route": "BOM \u2192 HYD",
+    "journey_date": "2024-06-22",
+    "duration_minutes": 90,
+    "total_stops": 0,
+    "predicted_fare": 3057.54,
+    "fare_range": {
+      "min": 2782.36,
+      "max": 3393.87
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-09T10:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3f9ff"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Air Asia",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-08",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 11544.79,
+    "fare_range": {
+      "min": 10505.76,
+      "max": 12814.72
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-13T16:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa00"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "Air Asia",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-05-01",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 4424.59,
+    "fare_range": {
+      "min": 4026.38,
+      "max": 4911.29
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-17T01:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa01"
+    },
+    "session_id": "sess-user-992014",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-06-03",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 6541.06,
+    "fare_range": {
+      "min": 5952.36,
+      "max": 7260.58
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Urgent Booking Window"
+    },
+    "created_at": {
+      "$date": "2026-11-19T18:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa02"
+    },
+    "session_id": "sess-user-381920",
+    "airline": "SpiceJet",
+    "source_city": "Mumbai",
+    "destination_city": "Hyderabad",
+    "route": "BOM \u2192 HYD",
+    "journey_date": "2024-05-24",
+    "duration_minutes": 90,
+    "total_stops": 0,
+    "predicted_fare": 3009.64,
+    "fare_range": {
+      "min": 2738.77,
+      "max": 3340.7
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-17T02:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa03"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Vistara",
+    "source_city": "Chennai",
+    "destination_city": "Kolkata",
+    "route": "MAA \u2192 CCU",
+    "journey_date": "2024-05-04",
+    "duration_minutes": 145,
+    "total_stops": 0,
+    "predicted_fare": 4964.07,
+    "fare_range": {
+      "min": 4517.3,
+      "max": 5510.12
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-13T06:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa04"
+    },
+    "session_id": "sess-user-551029",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 COK",
+    "journey_date": "2024-05-22",
+    "duration_minutes": 195,
+    "total_stops": 0,
+    "predicted_fare": 6955.83,
+    "fare_range": {
+      "min": 6329.81,
+      "max": 7720.97
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "FAIR PRICE",
+      "headline": "Price is Stable"
+    },
+    "created_at": {
+      "$date": "2026-11-14T05:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa05"
+    },
+    "session_id": "sess-demo-849201",
+    "airline": "Jet Airways",
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "route": "DEL \u2192 MAA \u2192 COK",
+    "journey_date": "2024-05-08",
+    "duration_minutes": 620,
+    "total_stops": 2,
+    "predicted_fare": 16107.08,
+    "fare_range": {
+      "min": 14657.44,
+      "max": 17878.86
+    },
+    "confidence": "Moderate",
+    "advisory": {
+      "action": "CONSIDER SHIFTING",
+      "headline": "High Volatility Expected"
+    },
+    "created_at": {
+      "$date": "2026-11-09T09:47:47.295Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6b00649b084bfca941b3fa06"
+    },
+    "session_id": "sess-user-781923",
+    "airline": "SpiceJet",
+    "source_city": "Banglore",
+    "destination_city": "New Delhi",
+    "route": "BLR \u2192 DEL",
+    "journey_date": "2024-06-15",
+    "duration_minutes": 170,
+    "total_stops": 0,
+    "predicted_fare": 5767.54,
+    "fare_range": {
+      "min": 5248.46,
+      "max": 6401.97
+    },
+    "confidence": "High",
+    "advisory": {
+      "action": "BUY NOW",
+      "headline": "Below Average Rate"
+    },
+    "created_at": {
+      "$date": "2026-11-14T14:47:47.295Z"
+    }
+  }
+]

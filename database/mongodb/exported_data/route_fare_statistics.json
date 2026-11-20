@@ -1,0 +1,87 @@
+[
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34debf"
+    },
+    "source_city": "Delhi",
+    "destination_city": "Cochin",
+    "average_fare": 10539.43,
+    "avg_duration_minutes": 795,
+    "last_updated": {
+      "$date": "2026-11-20T20:42:09.408Z"
+    },
+    "max_observed_fare": 54747.0,
+    "median_fare": 10262.0,
+    "min_observed_fare": 4200.0,
+    "popular_airline": "Jet Airways",
+    "sample_count": 4537
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34dec0"
+    },
+    "destination_city": "New Delhi",
+    "source_city": "Banglore",
+    "average_fare": 11919.33,
+    "avg_duration_minutes": 520,
+    "last_updated": {
+      "$date": "2026-11-20T20:42:09.408Z"
+    },
+    "max_observed_fare": 79512.0,
+    "median_fare": 10844.0,
+    "min_observed_fare": 3359.0,
+    "popular_airline": "Air India",
+    "sample_count": 2200
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34dec1"
+    },
+    "destination_city": "Delhi",
+    "source_city": "Banglore",
+    "average_fare": 5143.92,
+    "avg_duration_minutes": 170,
+    "last_updated": {
+      "$date": "2026-11-20T20:42:09.408Z"
+    },
+    "max_observed_fare": 16655.0,
+    "median_fare": 4823.0,
+    "min_observed_fare": 3359.0,
+    "popular_airline": "IndiGo",
+    "sample_count": 1565
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34dec2"
+    },
+    "source_city": "Kolkata",
+    "destination_city": "Banglore",
+    "average_fare": 9158.39,
+    "avg_duration_minutes": 755,
+    "last_updated": {
+      "$date": "2026-11-20T20:42:09.408Z"
+    },
+    "max_observed_fare": 31783.0,
+    "median_fare": 8355.0,
+    "min_observed_fare": 3480.0,
+    "popular_airline": "Air India",
+    "sample_count": 2871
+  },
+  {
+    "_id": {
+      "$oid": "6b0063490c717cb5cc34dec3"
+    },
+    "destination_city": "Hyderabad",
+    "source_city": "Mumbai",
+    "average_fare": 5059.73,
+    "avg_duration_minutes": 195,
+    "last_updated": {
+      "$date": "2026-11-20T20:42:09.408Z"
+    },
+    "max_observed_fare": 25139.0,
+    "median_fare": 4053.0,
+    "min_observed_fare": 1965.0,
+    "popular_airline": "Jet Airways",
+    "sample_count": 697
+  }
+]
