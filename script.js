@@ -27,7 +27,7 @@ form.addEventListener("submit", async function(event) {
 
     try {
 
-         const response = await fetch("https://airfare-price-estimation-z3wm.onrender.com/predict", {
+         const response = await fetch("https://airfare-prediction-1.onrender.com/predict", {
 
             method: "POST",
 
