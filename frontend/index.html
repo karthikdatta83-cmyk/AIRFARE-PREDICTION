@@ -32,7 +32,7 @@
       <div class="hero-copy">
         <div class="eyebrow"><span class="live-dot"></span> AI-POWERED FLIGHT PRICE ESTIMATION</div>
         <h1>Travel smart.<br><span>Pay the right fare.</span></h1>
-        <p class="hero-text">Plan your next journey with an intelligent domestic airfare estimate powered by machine learning. Select your flight details and discover predicted ticket fares and realistic price ranges in seconds.</p>
+        <p class="hero-text">Plan your next journey with an intelligent domestic airfare estimate powered by machine learning. Select your flight details and discover predicted ticket fares, multi-airline comparisons, 7-day trends, and price ranges in seconds.</p>
         <div class="hero-actions">
           <a class="primary-btn" href="#predictor">Estimate my fare <span>→</span></a>
           <div class="trust-note"><span class="trust-icon">✦</span><span>Powered by <b>Random Forest Regression (100 Trees)</b></span></div>
@@ -60,8 +60,8 @@
             <div class="ticket-stamp">AI<br>✦</div>
           </div>
         </div>
-        <div class="floating-chip chip-top"><span>✦</span> Dynamic Route & Duration Engine</div>
-        <div class="floating-chip chip-bottom"><span class="chip-check">✓</span> 90% Confidence Interval</div>
+        <div class="floating-chip chip-top"><span>✦</span> Multi-Airline Comparison Matrix</div>
+        <div class="floating-chip chip-bottom"><span class="chip-check">✓</span> 7-Day Fare Forecast Curve</div>
         <div class="plane-decoration">✈</div>
       </div>
     </section>
@@ -72,7 +72,7 @@
           <div class="eyebrow"><span class="eyebrow-line"></span> FLIGHT DETAILS</div>
           <h2>Let’s find your <span>fare.</span></h2>
         </div>
-        <p>Choose your journey details or pick a quick preset below.<br>Our model will predict the expected airfare and pricing range.</p>
+        <p>Choose your journey details or pick a quick preset below.<br>Our model will predict the expected airfare, comparison rates, and price trends.</p>
       </div>
 
       <!-- Quick Presets -->
@@ -154,10 +154,19 @@
           <div><b>Journey schedule</b><small>When does your flight depart and arrive?</small></div>
         </div>
         <div class="form-grid">
-          <label class="field">
-            <span>Journey date</span>
-            <input id="Journey_Date" type="date" required />
-          </label>
+          <div class="field field-date-group">
+            <label class="field">
+              <span>Journey date</span>
+              <input id="Journey_Date" type="date" required />
+            </label>
+            <div class="quick-dates-pills">
+              <button type="button" class="date-chip" data-days="0">Today</button>
+              <button type="button" class="date-chip" data-days="1">Tomorrow</button>
+              <button type="button" class="date-chip" data-days="7">+7 Days</button>
+              <button type="button" class="date-chip" data-days="14">+14 Days</button>
+              <button type="button" class="date-chip" data-days="30">+30 Days</button>
+            </div>
+          </div>
 
           <label class="field">
             <span>Departure time</span>
@@ -178,6 +187,17 @@
             <input id="Duration" type="number" min="1" max="2500" value="150" placeholder="e.g. 150" required />
             <small class="field-hint">Auto-calculated from departure & arrival timings.</small>
           </label>
+        </div>
+
+        <!-- Interactive 7-Day Date Calendar Strip -->
+        <div class="date-strip-container">
+          <div class="date-strip-header">
+            <span class="date-strip-title">📅 Quick Date Chart (Click any day to select):</span>
+            <span class="date-strip-hint">Tap a card to auto-update flight date</span>
+          </div>
+          <div class="date-cards-strip" id="dateCardsStrip">
+            <!-- Dynamically populated with 7 interactive day cards -->
+          </div>
         </div>
 
         <!-- Section 3: Preferences -->
@@ -240,6 +260,57 @@
 
           <div class="result-chips" id="resultChips">
             <!-- Dynamically populated tags -->
+          </div>
+
+          <!-- Feature 1: Buy Now vs. Wait Advisory -->
+          <div class="advisory-card" id="advisoryCard">
+            <div class="advisory-badge" id="advisoryBadge">BUY NOW</div>
+            <div class="advisory-text">
+              <b id="advisoryHeadline">Optimal Booking Window</b>
+              <p id="advisoryMessage">Seats in lower booking classes are selling out.</p>
+            </div>
+          </div>
+
+          <!-- Feature 2: 7-Day Fare Trend Chart -->
+          <div class="trend-section" id="trendSection">
+            <div class="trend-header">
+              <span class="trend-title">📅 7-Day Fare Forecast Curve</span>
+              <small class="trend-subtitle">Click any day to switch date</small>
+            </div>
+            <div class="trend-bars" id="trendBars">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Feature 3: Multi-Airline Comparison Matrix -->
+          <div class="airline-comp-section" id="airlineCompSection">
+            <div class="comp-header">
+              <span class="comp-title">✈️ Live Multi-Airline Fare Comparison</span>
+              <small class="comp-subtitle">Compare rates for this route & schedule</small>
+            </div>
+            <div class="airline-grid" id="airlineGrid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Feature 4: Explainable AI (XAI) Cost Breakdown -->
+          <div class="xai-section" id="xaiSection">
+            <div class="xai-header">
+              <span class="xai-title">🧠 Explainable AI (XAI) — Price Drivers</span>
+              <small class="xai-subtitle">Estimated factor contributions</small>
+            </div>
+            <div class="xai-list" id="xaiList">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Feature 5: Direct vs Connecting Tradeoff -->
+          <div class="tradeoff-card" id="tradeoffCard">
+            <div class="tradeoff-icon">⚖️</div>
+            <div class="tradeoff-body">
+              <b>Non-Stop vs. 1-Stop Transit Trade-off</b>
+              <p id="tradeoffText">Loading comparison...</p>
+            </div>
           </div>
         </div>
         <button type="button" id="resetBtn" class="reset-btn">Estimate another flight ↗</button>
