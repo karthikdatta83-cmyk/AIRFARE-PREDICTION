@@ -17,7 +17,7 @@ from sklearn.pipeline import Pipeline
 
 app = FastAPI(
     title="SkyFare Airfare Prediction API",
-    version="2.0"
+    version="2.1"
 )
 
 
@@ -51,7 +51,7 @@ except Exception as e:
 
 
 # ==========================================
-# 4. EXTRACT VALID CATEGORIES FROM PREPROCESSOR
+# 4. EXTRACT VALID CATEGORIES
 # ==========================================
 
 def extract_categories(obj, columns=None):
@@ -93,7 +93,7 @@ def extract_categories(obj, columns=None):
 
         for _, transformer, selected_columns in obj.transformers_:
 
-            if transformer == "drop" or transformer == "passthrough":
+            if transformer in ("drop", "passthrough"):
                 continue
 
             categories_dict.update(
@@ -109,8 +109,6 @@ def extract_categories(obj, columns=None):
 VALID_CATEGORIES = extract_categories(preprocessor)
 
 
-# Check that categorical validation is available.
-
 REQUIRED_CATEGORICAL_FIELDS = [
     "Airline",
     "Source",
@@ -124,8 +122,8 @@ for field in REQUIRED_CATEGORICAL_FIELDS:
     if field not in VALID_CATEGORIES:
 
         raise RuntimeError(
-            f"Could not extract valid categories for {field} "
-            "from preprocessor.pkl. Check your trained preprocessor."
+            f"Could not extract valid categories for {field}. "
+            "Check your preprocessor.pkl."
         )
 
 
@@ -196,14 +194,10 @@ def normalize_route(route):
 
 
 # ==========================================
-# 8. VALIDATE FLIGHT INPUT
+# 8. VALIDATE FLIGHT
 # ==========================================
 
 def validate_flight(flight):
-
-    # --------------------------------------
-    # Airline validation
-    # --------------------------------------
 
     if flight.Airline not in VALID_CATEGORIES["Airline"]:
 
@@ -212,22 +206,12 @@ def validate_flight(flight):
             detail=f"Invalid airline: {flight.Airline}"
         )
 
-
-    # --------------------------------------
-    # Source validation
-    # --------------------------------------
-
     if flight.Source not in VALID_CATEGORIES["Source"]:
 
         raise HTTPException(
             status_code=400,
             detail=f"Invalid source: {flight.Source}"
         )
-
-
-    # --------------------------------------
-    # Destination validation
-    # --------------------------------------
 
     if flight.Destination not in VALID_CATEGORIES["Destination"]:
 
@@ -236,11 +220,6 @@ def validate_flight(flight):
             detail=f"Invalid destination: {flight.Destination}"
         )
 
-
-    # --------------------------------------
-    # Same city validation
-    # --------------------------------------
-
     if flight.Source == flight.Destination:
 
         raise HTTPException(
@@ -248,22 +227,12 @@ def validate_flight(flight):
             detail="Source and destination cannot be the same."
         )
 
-
-    # --------------------------------------
-    # Additional information validation
-    # --------------------------------------
-
     if flight.Additional_Info not in VALID_CATEGORIES["Additional_Info"]:
 
         raise HTTPException(
             status_code=400,
             detail="Invalid additional flight information."
         )
-
-
-    # --------------------------------------
-    # Route validation
-    # --------------------------------------
 
     route = normalize_route(flight.Route)
 
@@ -273,11 +242,6 @@ def validate_flight(flight):
             status_code=400,
             detail=f"Invalid route: {flight.Route}"
         )
-
-
-    # --------------------------------------
-    # Route endpoint validation
-    # --------------------------------------
 
     if flight.Source not in AIRPORT_CODES:
 
@@ -306,7 +270,6 @@ def validate_flight(flight):
         )
 
     expected_source = AIRPORT_CODES[flight.Source]
-
     expected_destination = AIRPORT_CODES[flight.Destination]
 
     if route_parts[0] != expected_source:
@@ -323,11 +286,6 @@ def validate_flight(flight):
             detail="Route does not match the selected destination."
         )
 
-
-    # --------------------------------------
-    # Stop validation
-    # --------------------------------------
-
     actual_stops = len(route_parts) - 2
 
     if flight.Total_Stops != actual_stops:
@@ -336,11 +294,6 @@ def validate_flight(flight):
             status_code=400,
             detail="Number of stops does not match the selected route."
         )
-
-
-    # --------------------------------------
-    # Date validation
-    # --------------------------------------
 
     max_day = calendar.monthrange(
         2021,
@@ -353,11 +306,6 @@ def validate_flight(flight):
             status_code=400,
             detail="Invalid day for the selected month."
         )
-
-
-    # --------------------------------------
-    # Duration validation
-    # --------------------------------------
 
     if not 5 <= flight.Duration <= 2860:
 
@@ -388,8 +336,9 @@ def home():
 def version():
 
     return {
-        "version": "validation-v2",
-        "validation_enabled": True
+        "version": "dropdown-validation-v3",
+        "validation_enabled": True,
+        "dropdown_api": True
     }
 
 
@@ -408,29 +357,103 @@ def about():
 
 
 # ==========================================
-# 12. PREDICTION ENDPOINT
+# 12. DROPDOWN OPTIONS ENDPOINT
+# ==========================================
+
+@app.get("/options")
+def get_options():
+
+    airlines = sorted(VALID_CATEGORIES["Airline"])
+
+    sources = sorted(VALID_CATEGORIES["Source"])
+
+    destinations = sorted(VALID_CATEGORIES["Destination"])
+
+    additional_info = sorted(
+        VALID_CATEGORIES["Additional_Info"]
+    )
+
+    valid_routes = sorted(VALID_CATEGORIES["Route"])
+
+    route_options = []
+
+    for route in valid_routes:
+
+        normalized = normalize_route(route)
+
+        parts = [
+            part.strip()
+            for part in normalized.split("→")
+        ]
+
+        if len(parts) < 2:
+            continue
+
+        start_code = parts[0]
+        end_code = parts[-1]
+
+        stops = len(parts) - 2
+
+        for source in sources:
+
+            if AIRPORT_CODES.get(source) != start_code:
+                continue
+
+            for destination in destinations:
+
+                if source == destination:
+                    continue
+
+                if AIRPORT_CODES.get(destination) != end_code:
+                    continue
+
+                route_options.append({
+
+                    "source": source,
+
+                    "destination": destination,
+
+                    "route": normalized,
+
+                    "stops": stops
+
+                })
+
+    return {
+
+        "airlines": airlines,
+
+        "sources": sources,
+
+        "destinations": destinations,
+
+        "additional_info": additional_info,
+
+        "routes": route_options
+
+    }
+
+
+# ==========================================
+# 13. PREDICTION ENDPOINT
 # ==========================================
 
 @app.post("/predict")
 def predict_fare(flight: FlightDetails):
 
-    # Step 1: Validate all inputs
+    # Validate inputs
 
     validate_flight(flight)
 
-
-    # Step 2: Prepare input data
+    # Prepare input data
 
     input_data = pd.DataFrame([
         flight.model_dump()
     ])
 
-    # Ensure the normalized route is used
-
     input_data["Route"] = normalize_route(flight.Route)
 
-
-    # Step 3: Preprocess input
+    # Preprocess
 
     try:
 
@@ -443,8 +466,7 @@ def predict_fare(flight: FlightDetails):
             detail=f"Unable to process flight details: {str(e)}"
         )
 
-
-    # Step 4: Predict fare
+    # Predict
 
     try:
 
@@ -469,8 +491,7 @@ def predict_fare(flight: FlightDetails):
             detail="Fare prediction failed."
         )
 
-
-    # Step 5: Return prediction
+    # Return result
 
     return {
 
