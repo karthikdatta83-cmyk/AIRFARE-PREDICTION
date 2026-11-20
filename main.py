@@ -1,463 +1,415 @@
-import os
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
-import joblib
-import numpy as np
-import pandas as pd
-from fastapi import FastAPI, Request, Query, HTTPException
+```python
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+import joblib
+import pandas as pd
+import calendar
 
-import metadata
+app = FastAPI()
 
-app = FastAPI(
-    title="SkyFare — AI Airfare Prediction API",
-    description="Machine Learning REST API for domestic Indian airline ticket price estimation, airline comparison, trend forecasting, and explainable AI.",
-    version="2.5.0"
-)
-
-# Robust CORS Configuration: Allow all origins to avoid any CORS issues across local ports and cloud deployments
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "https://airfare-price-estimation-z3wm.onrender.com"
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load trained model and preprocessor artifacts
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "flight_model.pkl")
-PREPROCESSOR_PATH = os.path.join(BASE_DIR, "preprocessor.pkl")
-
-if not os.path.exists(MODEL_PATH) or not os.path.exists(PREPROCESSOR_PATH):
-    raise RuntimeError("Missing required model artifacts: flight_model.pkl or preprocessor.pkl")
-
-model = joblib.load(MODEL_PATH)
-preprocessor = joblib.load(PREPROCESSOR_PATH)
-
-# Mount frontend directory for static assets if present
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-if os.path.exists(FRONTEND_DIR):
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# Load ML Model and Preprocessor
+model = joblib.load("flight_model.pkl")
+preprocessor = joblib.load("preprocessor.pkl")
 
 
+# Valid values extracted from Data_Train.xlsx
+
+VALID_AIRLINES = {
+    "Air Asia",
+    "Air India",
+    "GoAir",
+    "IndiGo",
+    "Jet Airways",
+    "Jet Airways Business",
+    "Multiple carriers",
+    "Multiple carriers Premium economy",
+    "SpiceJet",
+    "Trujet",
+    "Vistara",
+    "Vistara Premium economy"
+}
+
+VALID_SOURCES = {
+    "Banglore",
+    "Chennai",
+    "Delhi",
+    "Kolkata",
+    "Mumbai"
+}
+
+VALID_DESTINATIONS = {
+    "Banglore",
+    "Cochin",
+    "Delhi",
+    "Hyderabad",
+    "Kolkata",
+    "New Delhi"
+}
+
+VALID_PAIRS = {
+    ("Banglore", "Delhi"),
+    ("Banglore", "New Delhi"),
+    ("Chennai", "Kolkata"),
+    ("Delhi", "Cochin"),
+    ("Kolkata", "Banglore"),
+    ("Mumbai", "Hyderabad")
+}
+
+VALID_INFO = {
+    "1 Long layover",
+    "1 Short layover",
+    "2 Long layover",
+    "Business class",
+    "Change airports",
+    "In-flight meal not included",
+    "No Info",
+    "No check-in baggage included",
+    "No info",
+    "Red-eye flight"
+}
+
+VALID_ROUTES = {
+    'BLR → AMD → DEL',
+    'BLR → BBI → DEL',
+    'BLR → BDQ → DEL',
+    'BLR → BOM → AMD → DEL',
+    'BLR → BOM → BHO → DEL',
+    'BLR → BOM → DEL',
+    'BLR → BOM → IDR → DEL',
+    'BLR → BOM → IDR → GWL → DEL',
+    'BLR → BOM → IXC → DEL',
+    'BLR → BOM → JDH → DEL',
+    'BLR → BOM → NAG → DEL',
+    'BLR → BOM → UDR → DEL',
+    'BLR → CCU → BBI → DEL',
+    'BLR → CCU → BBI → HYD → DEL',
+    'BLR → CCU → BBI → HYD → VGA → DEL',
+    'BLR → CCU → DEL',
+    'BLR → CCU → GAU → DEL',
+    'BLR → COK → DEL',
+    'BLR → DEL',
+    'BLR → GAU → DEL',
+    'BLR → GOI → DEL',
+    'BLR → HBX → BOM → AMD → DEL',
+    'BLR → HBX → BOM → BHO → DEL',
+    'BLR → HBX → BOM → NAG → DEL',
+    'BLR → HYD → DEL',
+    'BLR → HYD → VGA → DEL',
+    'BLR → IDR → DEL',
+    'BLR → LKO → DEL',
+    'BLR → MAA → DEL',
+    'BLR → NAG → DEL',
+    'BLR → PNQ → DEL',
+    'BLR → STV → DEL',
+    'BLR → TRV → COK → DEL',
+    'BLR → VGA → DEL',
+    'BLR → VGA → HYD → DEL',
+    'BLR → VGA → VTZ → DEL',
+    'BOM → AMD → ISK → HYD',
+    'BOM → BBI → HYD',
+    'BOM → BDQ → DEL → HYD',
+    'BOM → BHO → DEL → HYD',
+    'BOM → BLR → CCU → BBI → HYD',
+    'BOM → BLR → HYD',
+    'BOM → CCU → HYD',
+    'BOM → COK → MAA → HYD',
+    'BOM → DED → DEL → HYD',
+    'BOM → DEL → HYD',
+    'BOM → GOI → HYD',
+    'BOM → GOI → PNQ → HYD',
+    'BOM → HYD',
+    'BOM → IDR → DEL → HYD',
+    'BOM → JAI → DEL → HYD',
+    'BOM → JDH → DEL → HYD',
+    'BOM → JDH → JAI → DEL → HYD',
+    'BOM → JLR → HYD',
+    'BOM → MAA → HYD',
+    'BOM → NDC → HYD',
+    'BOM → RPR → VTZ → HYD',
+    'BOM → UDR → DEL → HYD',
+    'BOM → VNS → DEL → HYD',
+    'CCU → AMD → BLR',
+    'CCU → BBI → BLR',
+    'CCU → BBI → BOM → BLR',
+    'CCU → BBI → HYD → BLR',
+    'CCU → BBI → IXR → DEL → BLR',
+    'CCU → BLR',
+    'CCU → BOM → AMD → BLR',
+    'CCU → BOM → BLR',
+    'CCU → BOM → COK → BLR',
+    'CCU → BOM → GOI → BLR',
+    'CCU → BOM → HBX → BLR',
+    'CCU → BOM → PNQ → BLR',
+    'CCU → BOM → TRV → BLR',
+    'CCU → DEL → AMD → BLR',
+    'CCU → DEL → BLR',
+    'CCU → DEL → COK → BLR',
+    'CCU → DEL → COK → TRV → BLR',
+    'CCU → DEL → VGA → BLR',
+    'CCU → GAU → BLR',
+    'CCU → GAU → DEL → BLR',
+    'CCU → GAU → IMF → DEL → BLR',
+    'CCU → HYD → BLR',
+    'CCU → IXA → BLR',
+    'CCU → IXB → BLR',
+    'CCU → IXB → DEL → BLR',
+    'CCU → IXR → BBI → BLR',
+    'CCU → IXR → DEL → BLR',
+    'CCU → IXZ → MAA → BLR',
+    'CCU → JAI → BOM → BLR',
+    'CCU → JAI → DEL → BLR',
+    'CCU → KNU → BLR',
+    'CCU → MAA → BLR',
+    'CCU → NAG → BLR',
+    'CCU → PAT → BLR',
+    'CCU → PNQ → BLR',
+    'CCU → RPR → HYD → BLR',
+    'CCU → VNS → DEL → BLR',
+    'CCU → VTZ → BLR',
+    'DEL → AMD → BOM → COK',
+    'DEL → AMD → COK',
+    'DEL → ATQ → BOM → COK',
+    'DEL → BBI → COK',
+    'DEL → BDQ → BOM → COK',
+    'DEL → BHO → BOM → COK',
+    'DEL → BLR → COK',
+    'DEL → BOM → COK',
+    'DEL → CCU → BOM → COK',
+    'DEL → COK',
+    'DEL → DED → BOM → COK',
+    'DEL → GOI → BOM → COK',
+    'DEL → GWL → IDR → BOM → COK',
+    'DEL → HYD → BOM → COK',
+    'DEL → HYD → COK',
+    'DEL → HYD → MAA → COK',
+    'DEL → IDR → BOM → COK',
+    'DEL → IXC → BOM → COK',
+    'DEL → IXU → BOM → COK',
+    'DEL → JAI → BOM → COK',
+    'DEL → JDH → BOM → COK',
+    'DEL → LKO → BOM → COK',
+    'DEL → LKO → COK',
+    'DEL → MAA → BOM → COK',
+    'DEL → MAA → COK',
+    'DEL → NAG → BOM → COK',
+    'DEL → PNQ → COK',
+    'DEL → RPR → NAG → BOM → COK',
+    'DEL → TRV → COK',
+    'DEL → UDR → BOM → COK',
+    'MAA → CCU'
+}
+
+
+# Request Model
 class FlightDetails(BaseModel):
-    Airline: str = Field(..., description="Airline name (e.g. IndiGo, Air India, Vistara)")
-    Source: str = Field(..., description="Departure city (e.g. Delhi, Banglore, Mumbai)")
-    Destination: str = Field(..., description="Arrival city (e.g. Cochin, New Delhi, Hyderabad)")
-    Route: Optional[str] = Field(default="", description="Flight transit route (e.g. DEL → BOM → COK)")
-    Additional_Info: Optional[str] = Field(default="No info", description="Additional flight services / info")
+    Airline: str
+    Source: str
+    Destination: str
+    Route: str
+    Additional_Info: str
 
-    Duration: int = Field(..., gt=0, le=3000, description="Flight duration in minutes")
-    Total_Stops: int = Field(..., ge=0, le=4, description="Total stops (0 for non-stop)")
-    Journey_Day: int = Field(..., ge=1, le=31, description="Day of month")
-    Journey_Month: int = Field(..., ge=1, le=12, description="Month of year (1-12)")
-    Dep_Hour: int = Field(..., ge=0, le=23, description="Departure hour (0-23)")
-    Dep_Minute: int = Field(..., ge=0, le=59, description="Departure minute (0-59)")
-    Arrival_Hour: int = Field(..., ge=0, le=23, description="Arrival hour (0-23)")
-    Arrival_Minute: int = Field(..., ge=0, le=59, description="Arrival minute (0-59)")
-
-
-def compute_airline_comparison(base_flight: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Compare prices across major airlines for the same journey parameters."""
-    candidate_airlines = ["IndiGo", "SpiceJet", "Air India", "Vistara", "Air Asia", "GoAir"]
-    
-    rows = []
-    for airline in candidate_airlines:
-        row = base_flight.copy()
-        row["Airline"] = airline
-        rows.append(row)
-        
-    df_batch = pd.DataFrame(rows)
-    X_batch = preprocessor.transform(df_batch)
-    preds = model.predict(X_batch)
-    
-    results = []
-    min_fare = float(np.min(preds))
-    
-    tier_map = {
-        "IndiGo": "Low-Cost Carrier",
-        "SpiceJet": "Low-Cost Carrier",
-        "Air Asia": "Budget Carrier",
-        "GoAir": "Budget Carrier",
-        "Air India": "Full Service",
-        "Vistara": "Premium Full Service"
-    }
-    
-    for airline, pred in zip(candidate_airlines, preds):
-        fare = round(float(pred), 2)
-        results.append({
-            "airline": airline,
-            "fare": fare,
-            "formatted_fare": f"₹{int(round(fare)):,}",
-            "tier": tier_map.get(airline, "Commercial"),
-            "is_selected": (airline == base_flight.get("Airline")),
-            "is_cheapest": (fare == min_fare),
-            "savings": int(round(fare - min_fare)) if fare > min_fare else 0
-        })
-        
-    # Sort by fare ascending
-    results.sort(key=lambda x: x["fare"])
-    return results
+    Duration: int
+    Total_Stops: int
+    Journey_Day: int
+    Journey_Month: int
+    Dep_Hour: int
+    Dep_Minute: int
+    Arrival_Hour: int
+    Arrival_Minute: int
 
 
-def compute_seven_day_trend(base_flight: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Predict fare curve across 7 consecutive days surrounding the selected journey date."""
-    now = datetime.now()
-    j_day = base_flight["Journey_Day"]
-    j_month = base_flight["Journey_Month"]
-    
-    year = now.year if j_month >= now.month else now.year + 1
-    try:
-        anchor_date = datetime(year, j_month, j_day)
-    except ValueError:
-        anchor_date = now + timedelta(days=7)
-        
-    # Anchor 3 days before and 3 days after, clamping to today or future
-    start_date = max(now.date(), (anchor_date - timedelta(days=3)).date())
-    
-    rows = []
-    date_labels = []
-    
-    for i in range(7):
-        curr_dt = start_date + timedelta(days=i)
-        row = base_flight.copy()
-        row["Journey_Day"] = curr_dt.day
-        row["Journey_Month"] = curr_dt.month
-        rows.append(row)
-        date_labels.append(curr_dt)
-        
-    df_batch = pd.DataFrame(rows)
-    X_batch = preprocessor.transform(df_batch)
-    preds = model.predict(X_batch)
-    
-    min_fare = float(np.min(preds))
-    trend = []
-    
-    for dt, pred in zip(date_labels, preds):
-        fare = round(float(pred), 2)
-        is_anchor = (dt.day == anchor_date.day and dt.month == anchor_date.month)
-        trend.append({
-            "date": dt.strftime("%Y-%m-%d"),
-            "display_day": dt.strftime("%a, %d %b"),
-            "day_name": dt.strftime("%a"),
-            "fare": fare,
-            "formatted_fare": f"₹{int(round(fare)):,}",
-            "is_selected": is_anchor,
-            "is_cheapest": (fare == min_fare)
-        })
-        
-    return trend
-
-
-def compute_buy_wait_advisory(base_flight: Dict[str, Any], current_fare: float, trend: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Generate intelligent 'Buy Now vs Wait' recommendation based on timeline and trend volatility."""
-    now = datetime.now().date()
-    j_day = base_flight["Journey_Day"]
-    j_month = base_flight["Journey_Month"]
-    year = now.year if j_month >= now.month else now.year + 1
-    
-    try:
-        flight_date = datetime(year, j_month, j_day).date()
-        days_ahead = (flight_date - now).days
-    except ValueError:
-        days_ahead = 10
-        
-    min_trend = min(item["fare"] for item in trend) if trend else current_fare
-    
-    if days_ahead <= 4:
-        return {
-            "action": "BUY NOW",
-            "badge_color": "danger",
-            "headline": "Urgent Booking Window (< 5 Days to Flight)",
-            "message": "Airlines steeply increase last-minute fares. Ticket prices are at risk of climbing significantly over the next 24 hours.",
-            "days_ahead": days_ahead
-        }
-    elif days_ahead <= 14:
-        return {
-            "action": "BUY NOW",
-            "badge_color": "warning",
-            "headline": "Optimal Booking Window (Within 2 Weeks)",
-            "message": "Seats in lower booking classes are selling out. Current prices represent typical peak-capacity rates.",
-            "days_ahead": days_ahead
-        }
-    elif (current_fare - min_trend) > 400:
-        cheapest_day = next((item["display_day"] for item in trend if item["is_cheapest"]), "another nearby day")
-        return {
-            "action": "CONSIDER SHIFTING",
-            "badge_color": "info",
-            "headline": f"Lower Fare Available on {cheapest_day}",
-            "message": f"You can save up to ₹{int(current_fare - min_trend):,} by shifting departure to {cheapest_day}.",
-            "days_ahead": days_ahead
-        }
-    else:
-        return {
-            "action": "FAIR PRICE",
-            "badge_color": "success",
-            "headline": "Price is Stable and Competitive",
-            "message": f"This flight is {days_ahead} days away. The predicted rate aligns with expected baseline averages for this sector.",
-            "days_ahead": days_ahead
-        }
-
-
-def compute_xai_breakdown(predicted_fare: float, flight: FlightDetails) -> List[Dict[str, Any]]:
-    """Explainable AI (XAI) feature attribution estimating how journey parameters impact the predicted fare."""
-    total = predicted_fare
-    
-    # 1. Base distance component
-    base_dist_amount = round(total * 0.45)
-    
-    # 2. Duration / Operating Cost impact
-    dur_factor = round(total * 0.28)
-    
-    # 3. Carrier Tier impact
-    if "Business" in flight.Airline:
-        carrier_label = "Premium Business Class Surcharge"
-        carrier_amount = round(total * 0.40)
-    elif flight.Airline in ["Air India", "Vistara"]:
-        carrier_label = f"Full-Service Inclusions ({flight.Airline})"
-        carrier_amount = round(total * 0.15)
-    else:
-        carrier_label = f"Low-Cost Carrier Base Rate ({flight.Airline})"
-        carrier_amount = round(total * 0.10)
-        
-    # 4. Layover / Stop penalties
-    if flight.Total_Stops == 0:
-        stop_label = "Non-Stop Convenience Direct Sector"
-        stop_amount = round(total * 0.08)
-    else:
-        stop_label = f"Multi-Hub Transit ({flight.Total_Stops} stop layover fees)"
-        stop_amount = round(total * 0.12)
-        
-    # Remainder is seasonal / timing volatility
-    misc_amount = max(200, int(round(total - (base_dist_amount + dur_factor + carrier_amount + stop_amount))))
-    
-    return [
-        {"factor": "Origin-Destination Route Baseline", "amount": base_dist_amount, "formatted": f"₹{base_dist_amount:,}", "type": "base"},
-        {"factor": f"Flight Duration ({flight.Duration} mins)", "amount": dur_factor, "formatted": f"₹{dur_factor:,}", "type": "duration"},
-        {"factor": carrier_label, "amount": carrier_amount, "formatted": f"₹{carrier_amount:,}", "type": "carrier"},
-        {"factor": stop_label, "amount": stop_amount, "formatted": f"₹{stop_amount:,}", "type": "transit"},
-        {"factor": "Demand & Timing Adjustment", "amount": misc_amount, "formatted": f"₹{misc_amount:,}", "type": "demand"}
-    ]
-
-
-def compute_direct_vs_connecting(base_flight: Dict[str, Any]) -> Dict[str, Any]:
-    """Calculate price and duration trade-off between Non-Stop and 1-Stop layover."""
-    direct_flight = base_flight.copy()
-    direct_flight["Total_Stops"] = 0
-    direct_flight["Route"] = metadata.get_best_route(base_flight["Source"], base_flight["Destination"], 0)
-    
-    connecting_flight = base_flight.copy()
-    connecting_flight["Total_Stops"] = 1
-    connecting_flight["Route"] = metadata.get_best_route(base_flight["Source"], base_flight["Destination"], 1)
-    connecting_flight["Duration"] = int(base_flight["Duration"] + 120)
-    
-    X_comp = preprocessor.transform(pd.DataFrame([direct_flight, connecting_flight]))
-    preds = model.predict(X_comp)
-    
-    dir_fare = round(float(preds[0]), 2)
-    conn_fare = round(float(preds[1]), 2)
-    diff = round(abs(dir_fare - conn_fare), 2)
-    
-    if dir_fare <= conn_fare:
-        insight = f"Direct flight is ₹{int(diff):,} cheaper than connecting with layovers. Recommended to book direct."
-    else:
-        insight = f"Save ₹{int(diff):,} by opting for a 1-stop connecting flight instead of non-stop."
-        
+# Home
+@app.get("/")
+def home():
     return {
-        "direct_fare": dir_fare,
-        "formatted_direct_fare": f"₹{int(round(dir_fare)):,}",
-        "connecting_fare": conn_fare,
-        "formatted_connecting_fare": f"₹{int(round(conn_fare)):,}",
-        "price_difference": diff,
-        "insight": insight
+        "message": "Airfare Prediction API is running"
     }
 
 
-@app.get("/", include_in_schema=False)
-def home(request: Request):
-    """Serve the Web UI in browsers, or return API status JSON for API clients."""
-    accept = request.headers.get("accept", "")
-    index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if "text/html" in accept and os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {
-        "status": "online",
-        "service": "SkyFare Airfare Prediction API",
-        "version": "2.5.0",
-        "docs_url": "/docs",
-        "endpoints": {
-            "predict": "POST /predict",
-            "metadata": "GET /api/metadata",
-            "routes": "GET /api/routes?source={city}&destination={city}",
-            "health": "GET /health",
-            "about": "GET /about"
-        }
-    }
-
-
-@app.get("/style.css", include_in_schema=False)
-def serve_css():
-    css_path = os.path.join(FRONTEND_DIR, "style.css")
-    if os.path.exists(css_path):
-        return FileResponse(css_path, media_type="text/css")
-    raise HTTPException(status_code=404, detail="style.css not found")
-
-
-@app.get("/script.js", include_in_schema=False)
-def serve_js():
-    js_path = os.path.join(FRONTEND_DIR, "script.js")
-    if os.path.exists(js_path):
-        return FileResponse(js_path, media_type="application/javascript")
-    raise HTTPException(status_code=404, detail="script.js not found")
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "preprocessor_loaded": preprocessor is not None,
-        "n_estimators": len(getattr(model, "estimators_", [])),
-        "total_features": getattr(model, "n_features_in_", 169)
-    }
-
-
+# About
 @app.get("/about")
 def about():
     return {
-        "project": "SkyFare — Airfare Price Prediction System",
-        "model": "Random Forest Regressor (100 Decision Trees)",
-        "framework": "FastAPI + Scikit-Learn",
-        "features": [
-            "Batch Multi-Airline Comparison Matrix",
-            "7-Day Temporal Fare Forecast",
-            "Buy Now vs Wait Fare Advisory",
-            "Explainable AI (XAI) Cost Attribution",
-            "Direct vs Connecting Flight Trade-off"
-        ]
+        "project": "Airfare Price Prediction",
+        "model": "Random Forest Regression"
     }
 
 
-@app.get("/api/metadata")
-def get_metadata():
-    """Return available categorical choices, default city pairs, and airport mappings."""
-    return {
-        "airlines": metadata.AIRLINES,
-        "sources": metadata.SOURCES,
-        "destinations": metadata.DESTINATIONS,
-        "valid_pairs": metadata.VALID_PAIRS,
-        "city_codes": metadata.CITY_CODE_MAP,
-        "additional_info": metadata.ADDITIONAL_INFO,
-        "routes_by_pair": metadata.ROUTES_BY_PAIR
-    }
-
-
-@app.get("/api/routes")
-def get_routes(
-    source: str = Query(..., description="Source city name"),
-    destination: str = Query(..., description="Destination city name"),
-    stops: Optional[int] = Query(None, description="Optional stop count filter (0, 1, 2, 3)")
-):
-    """Return valid known routes for a specific source and destination pair."""
-    s_code = metadata.CITY_CODE_MAP.get(source)
-    d_code = metadata.CITY_CODE_MAP.get(destination)
-    if not s_code or not d_code:
-        return {"routes": [metadata.get_best_route(source, destination, stops or 0)]}
-
-    pair_key = f"{s_code}->{d_code}"
-    pair_routes = metadata.ROUTES_BY_PAIR.get(pair_key, {})
-
-    if stops is not None:
-        return {"routes": pair_routes.get(str(stops), [])}
-
-    all_pair_routes = []
-    for stop_group in pair_routes.values():
-        all_pair_routes.extend(stop_group)
-
-    if not all_pair_routes:
-        all_pair_routes = [f"{s_code} → {d_code}"]
-
-    return {"routes": all_pair_routes}
-
-
+# Prediction
 @app.post("/predict")
 def predict_fare(flight: FlightDetails):
-    try:
-        # Normalize and sanitize Route and Additional_Info
-        normalized_route = metadata.normalize_route(
-            flight.Route,
-            source=flight.Source,
-            destination=flight.Destination,
-            total_stops=flight.Total_Stops
+
+    # Airline validation
+    if flight.Airline not in VALID_AIRLINES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid airline selected."
         )
-        normalized_info = metadata.normalize_additional_info(flight.Additional_Info)
 
-        # Build clean input dictionary
-        input_dict = flight.model_dump()
-        input_dict["Route"] = normalized_route
-        input_dict["Additional_Info"] = normalized_info
+    # Source validation
+    if flight.Source not in VALID_SOURCES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid source city."
+        )
 
-        input_data = pd.DataFrame([input_dict])
+    # Destination validation
+    if flight.Destination not in VALID_DESTINATIONS:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid destination city."
+        )
 
-        # Preprocess features
-        processed_data = preprocessor.transform(input_data)
+    # Source and destination combination
+    if (flight.Source, flight.Destination) not in VALID_PAIRS:
+        raise HTTPException(
+            status_code=400,
+            detail="This source and destination combination is not available in the dataset."
+        )
 
-        # Calculate tree-level predictions for mean and confidence interval
-        tree_predictions = np.array([tree.predict(processed_data)[0] for tree in model.estimators_])
-        mean_prediction = float(np.mean(tree_predictions))
-        p10 = float(np.percentile(tree_predictions, 10))
-        p90 = float(np.percentile(tree_predictions, 90))
-        std_dev = float(np.std(tree_predictions))
+    # Same city validation
+    if flight.Source == flight.Destination:
+        raise HTTPException(
+            status_code=400,
+            detail="Source and destination cannot be the same."
+        )
 
-        # Format confidence
-        if std_dev < 1000:
-            confidence = "High"
-        elif std_dev < 2500:
-            confidence = "Moderate"
-        else:
-            confidence = "Variable"
+    # Route validation
+    route = flight.Route.strip()
 
-        duration_hours = flight.Duration // 60
-        duration_mins = flight.Duration % 60
-        duration_label = f"{duration_hours}h {duration_mins}m" if duration_hours > 0 else f"{duration_mins}m"
+    if route not in VALID_ROUTES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid route. Please enter a route from the training dataset."
+        )
 
-        # Rich ML Intelligence Extra Features
-        airline_comp = compute_airline_comparison(input_dict)
-        seven_day_trend = compute_seven_day_trend(input_dict)
-        advisory = compute_buy_wait_advisory(input_dict, mean_prediction, seven_day_trend)
-        xai_factors = compute_xai_breakdown(mean_prediction, flight)
-        tradeoff = compute_direct_vs_connecting(input_dict)
+    # Route endpoint validation
+    airport_codes = {
+        "Banglore": "BLR",
+        "Chennai": "MAA",
+        "Delhi": "DEL",
+        "Kolkata": "CCU",
+        "Mumbai": "BOM",
+        "Cochin": "COK",
+        "Hyderabad": "HYD",
+        "New Delhi": "DEL"
+    }
 
-        return {
-            "predicted_fare": round(mean_prediction, 2),
-            "formatted_fare": f"₹{int(round(mean_prediction)):,}",
-            "currency": "INR",
-            "fare_range": {
-                "min": round(p10, 2),
-                "max": round(p90, 2),
-                "formatted_min": f"₹{int(round(p10)):,}",
-                "formatted_max": f"₹{int(round(p90)):,}",
-                "formatted_range": f"₹{int(round(p10)):,} – ₹{int(round(p90)):,}"
-            },
-            "confidence": confidence,
-            "flight_summary": {
-                "airline": flight.Airline,
-                "source": flight.Source,
-                "destination": flight.Destination,
-                "route": normalized_route,
-                "stops": flight.Total_Stops,
-                "duration": duration_label
-            },
-            "advisory": advisory,
-            "airline_comparison": airline_comp,
-            "seven_day_trend": seven_day_trend,
-            "xai_breakdown": xai_factors,
-            "tradeoff": tradeoff
-        }
+    route_parts = [part.strip() for part in route.split("→")]
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+    if (
+        route_parts[0] != airport_codes[flight.Source]
+        or route_parts[-1] != airport_codes[flight.Destination]
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Route does not match the selected source and destination."
+        )
+
+    # Additional information validation
+    if flight.Additional_Info not in VALID_INFO:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid additional flight information."
+        )
+
+    # Stops validation
+    if flight.Total_Stops not in range(5):
+        raise HTTPException(
+            status_code=400,
+            detail="Total stops must be between 0 and 4."
+        )
+
+    # Route and stops consistency
+    actual_stops = len(route_parts) - 2
+
+    if flight.Total_Stops != actual_stops:
+        raise HTTPException(
+            status_code=400,
+            detail="Total stops do not match the selected route."
+        )
+
+    # Duration validation (minutes)
+    if not 5 <= flight.Duration <= 2860:
+        raise HTTPException(
+            status_code=400,
+            detail="Duration must be between 5 and 2860 minutes."
+        )
+
+    # Journey day validation
+    if not 1 <= flight.Journey_Day <= 31:
+        raise HTTPException(
+            status_code=400,
+            detail="Journey day must be between 1 and 31."
+        )
+
+    # Journey month validation
+    if not 1 <= flight.Journey_Month <= 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Journey month must be between 1 and 12."
+        )
+
+    max_day = calendar.monthrange(
+        2020, flight.Journey_Month
+    )[1]
+
+    if flight.Journey_Day > max_day:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid day for the selected month."
+        )
+
+    # Departure time validation
+    if not 0 <= flight.Dep_Hour <= 23:
+        raise HTTPException(
+            status_code=400,
+            detail="Departure hour must be between 0 and 23."
+        )
+
+    if not 0 <= flight.Dep_Minute <= 59:
+        raise HTTPException(
+            status_code=400,
+            detail="Departure minute must be between 0 and 59."
+        )
+
+    # Arrival time validation
+    if not 0 <= flight.Arrival_Hour <= 23:
+        raise HTTPException(
+            status_code=400,
+            detail="Arrival hour must be between 0 and 23."
+        )
+
+    if not 0 <= flight.Arrival_Minute <= 59:
+        raise HTTPException(
+            status_code=400,
+            detail="Arrival minute must be between 0 and 59."
+        )
+
+    # Prepare input data
+    input_data = pd.DataFrame([flight.model_dump()])
+
+    # Preprocessing
+    processed_data = preprocessor.transform(input_data)
+
+    # Prediction
+    prediction = model.predict(processed_data)
+
+    return {
+        "predicted_fare": round(float(prediction[0]), 2)
+    }
+```
