@@ -5,84 +5,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>SkyFare - Airfare Price Prediction</title>
+    <title>Airfare Price Prediction</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        input,
+        select {
+            width: 100%;
+            padding: 13px;
+            margin: 8px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            box-sizing: border-box;
+            font-size: 15px;
+            background-color: white;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
 
     <div class="container">
 
-        <h1>✈️ SkyFare Airfare Prediction</h1>
+        <h1>Airfare Price Prediction</h1>
 
         <p>Predict your flight ticket price using Machine Learning</p>
 
         <form id="flightForm">
 
-            <h2>Flight Details</h2>
-
-            <!-- Airline -->
             <label for="Airline">Airline</label>
             <select id="Airline" required>
                 <option value="">Loading Airlines...</option>
             </select>
 
-            <!-- Source -->
             <label for="Source">Source</label>
             <select id="Source" required>
                 <option value="">Loading Sources...</option>
             </select>
 
-            <!-- Destination -->
             <label for="Destination">Destination</label>
             <select id="Destination" required>
                 <option value="">Select Source First</option>
             </select>
 
-            <!-- Route -->
             <label for="Route">Route</label>
             <select id="Route" required>
                 <option value="">Select Destination First</option>
             </select>
 
-            <!-- Additional Information -->
             <label for="Additional_Info">Additional Information</label>
             <select id="Additional_Info" required>
                 <option value="">Loading Options...</option>
             </select>
 
-            <!-- Duration -->
-            <label for="Duration">Flight Duration (Minutes)</label>
+            <label for="Duration">Duration (Minutes)</label>
             <input
                 type="number"
                 id="Duration"
                 min="5"
                 max="2860"
-                placeholder="Example: 170"
+                placeholder="Enter duration in minutes"
                 required
             >
 
-            <!-- Stops -->
             <label for="Total_Stops">Total Stops</label>
             <select id="Total_Stops" required>
                 <option value="">Select Route First</option>
             </select>
 
-            <h2>Journey Date</h2>
+            <h3>Journey Date</h3>
 
-            <!-- Journey Day -->
             <label for="Journey_Day">Journey Day</label>
             <input
                 type="number"
                 id="Journey_Day"
                 min="1"
                 max="31"
-                placeholder="Example: 25"
+                placeholder="Enter day"
                 required
             >
 
-            <!-- Journey Month -->
             <label for="Journey_Month">Journey Month</label>
             <select id="Journey_Month" required>
                 <option value="">Select Month</option>
@@ -100,9 +127,8 @@
                 <option value="12">December</option>
             </select>
 
-            <h2>Departure Time</h2>
+            <h3>Departure Time</h3>
 
-            <!-- Departure Hour -->
             <label for="Dep_Hour">Departure Hour</label>
             <input
                 type="number"
@@ -113,7 +139,6 @@
                 required
             >
 
-            <!-- Departure Minute -->
             <label for="Dep_Minute">Departure Minute</label>
             <input
                 type="number"
@@ -124,9 +149,8 @@
                 required
             >
 
-            <h2>Arrival Time</h2>
+            <h3>Arrival Time</h3>
 
-            <!-- Arrival Hour -->
             <label for="Arrival_Hour">Arrival Hour</label>
             <input
                 type="number"
@@ -137,7 +161,6 @@
                 required
             >
 
-            <!-- Arrival Minute -->
             <label for="Arrival_Minute">Arrival Minute</label>
             <input
                 type="number"
@@ -148,14 +171,12 @@
                 required
             >
 
-            <!-- Prediction Button -->
             <button type="submit" id="predictButton">
                 Predict Airfare
             </button>
 
         </form>
 
-        <!-- Prediction Result -->
         <div id="result"></div>
 
     </div>
@@ -163,5 +184,4 @@
     <script src="script.js"></script>
 
 </body>
-
 </html>
