@@ -276,104 +276,101 @@ form.addEventListener("submit", async function(event) {
         return;
     }
 
+    const dateValue = document.getElementById("Journey_Date").value;
+    if (!dateValue) {
+        result.textContent = "Please select a journey date.";
+        return;
+    }
+    const [year, month, day] = dateValue.split("-").map(Number);
+
+    const depHour = Number(document.getElementById("Dep_Hour").value);
+    const depMinute = Number(document.getElementById("Dep_Minute").value);
+    const arrHour = Number(document.getElementById("Arrival_Hour").value);
+    const arrMinute = Number(document.getElementById("Arrival_Minute").value);
+
+    // Automatically calculate duration in minutes from departure and arrival times
+    let durationMinutes = (arrHour * 60 + arrMinute) - (depHour * 60 + depMinute);
+    if (durationMinutes <= 0) {
+        durationMinutes += 24 * 60; // Next-day arrival / overnight flight
+    }
+
     const data = {
-
         Airline: airlineSelect.value,
-
         Source: sourceSelect.value,
-
         Destination: destinationSelect.value,
-
         Route: routeSelect.value,
-
         Additional_Info: infoSelect.value,
-
-        Duration: Number(
-            document.getElementById("Duration").value
-        ),
-
+        Duration: durationMinutes,
         Total_Stops: Number(stopsSelect.value),
-
-        Journey_Day: Number(
-            document.getElementById("Journey_Day").value
-        ),
-
-        Journey_Month: Number(
-            document.getElementById("Journey_Month").value
-        ),
-
-        Dep_Hour: Number(
-            document.getElementById("Dep_Hour").value
-        ),
-
-        Dep_Minute: Number(
-            document.getElementById("Dep_Minute").value
-        ),
-
-        Arrival_Hour: Number(
-            document.getElementById("Arrival_Hour").value
-        ),
-
-        Arrival_Minute: Number(
-            document.getElementById("Arrival_Minute").value
-        )
-
+        Journey_Day: day,
+        Journey_Month: month,
+        Dep_Hour: depHour,
+        Dep_Minute: depMinute,
+        Arrival_Hour: arrHour,
+        Arrival_Minute: arrMinute
     };
 
     result.textContent = "Predicting airfare...";
-
     predictButton.disabled = true;
 
     try {
-
         const response = await fetch(`${API_URL}/predict`, {
-
             method: "POST",
-
             headers: {
-
                 "Content-Type": "application/json"
-
             },
-
             body: JSON.stringify(data)
-
         });
 
         const output = await response.json();
 
         if (!response.ok) {
-
             const message = Array.isArray(output.detail)
-
                 ? output.detail.map(error => error.msg).join(", ")
-
                 : output.detail || "Prediction failed.";
-
             throw new Error(message);
-
         }
 
-        result.innerHTML =
+        let comparisonsHtml = "";
+        if (output.comparisons && output.comparisons.length > 0) {
+            comparisonsHtml = `
+                <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 13px;">
+                    <p style="color: #444; margin-bottom: 8px;"><strong>Other Airlines on this Route:</strong></p>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        ${output.comparisons.map(c => `
+                            <span style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 500; color: #1e293b;">
+                                ${c.airline}: ${c.fare}
+                            </span>
+                        `).join("")}
+                    </div>
+                </div>
+            `;
+        }
 
-            "<h2>Predicted Airfare</h2>" +
+        result.innerHTML = `
+            <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #fafafa; margin-top: 20px; text-align: center;">
+                <h3 style="color: #64748b; font-size: 14px; text-transform: uppercase;">Estimated Ticket Fare</h3>
+                <h1 style="color: #1d2671; font-size: 36px; margin: 8px 0;">${output.formatted_fare}</h1>
+                
+                <div style="font-size: 14px; color: #475569; margin: 10px 0;">
+                    <span>⏱ Duration: <strong>${output.duration_text || '2h 30m'}</strong></span> &bull; 
+                    <span>🏷 Category: <strong>${output.fare_category || 'Economy'}</strong></span>
+                </div>
 
-            "<h1>" + output.formatted_fare + "</h1>";
+                <div style="background: #e0f2fe; color: #0369a1; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-block; margin-top: 5px;">
+                    💡 Advice: ${output.booking_advice || 'Fair Price'}
+                </div>
 
+                ${comparisonsHtml}
+            </div>
+        `;
     }
-
     catch(error) {
-
         result.textContent = "Error: " + error.message;
-
     }
-
     finally {
-
         predictButton.disabled = false;
-
     }
-
 });
 
 

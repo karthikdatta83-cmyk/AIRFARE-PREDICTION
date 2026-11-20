@@ -70,6 +70,36 @@ def test_predict_valid_flight():
     assert data["currency"] == "INR"
 
 
+def test_predict_auto_duration_and_features():
+    opts = client.get("/options").json()
+    sample_route = opts["routes"][0]
+
+    # Payload with NO Duration field (omitted)
+    payload_no_duration = {
+        "Airline": "IndiGo",
+        "Source": sample_route["source"],
+        "Destination": sample_route["destination"],
+        "Route": sample_route["route"],
+        "Additional_Info": opts["additional_info"][0],
+        "Total_Stops": sample_route["stops"],
+        "Journey_Day": 15,
+        "Journey_Month": 5,
+        "Dep_Hour": 10,
+        "Dep_Minute": 30,
+        "Arrival_Hour": 13,
+        "Arrival_Minute": 0
+    }
+    response = client.post("/predict", json=payload_no_duration)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["duration_minutes"] == 150
+    assert data["duration_text"] == "2h 30m"
+    assert "fare_category" in data
+    assert "booking_advice" in data
+    assert "comparisons" in data
+    assert isinstance(data["comparisons"], list)
+
+
 def test_predict_arrow_normalization():
     opts = client.get("/options").json()
     # Find a 1-stop route

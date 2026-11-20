@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from typing import Optional, List
 
 import joblib
 import pandas as pd
@@ -153,7 +154,7 @@ class FlightDetails(BaseModel):
     Route: str = Field(min_length=1)
     Additional_Info: str = Field(min_length=1)
 
-    Duration: int = Field(ge=5, le=2860)
+    Duration: Optional[int] = Field(default=None, ge=5, le=2860)
 
     Total_Stops: int = Field(ge=0, le=4)
 
@@ -445,12 +446,19 @@ def get_options():
 @app.post("/predict")
 def predict_fare(flight: FlightDetails):
 
-    # Validate inputs
+    # Automatically calculate duration from departure and arrival times if omitted
+    if flight.Duration is None:
+        dep_mins = flight.Dep_Hour * 60 + flight.Dep_Minute
+        arr_mins = flight.Arrival_Hour * 60 + flight.Arrival_Minute
+        duration = arr_mins - dep_mins
+        if duration <= 0:
+            duration += 24 * 60  # Crosses midnight / overnight flight
+        flight.Duration = max(5, duration)
 
+    # Validate inputs
     validate_flight(flight)
 
     # Prepare input data
-
     input_data = pd.DataFrame([
         flight.model_dump()
     ])
@@ -458,51 +466,90 @@ def predict_fare(flight: FlightDetails):
     input_data["Route"] = normalize_route(flight.Route)
 
     # Preprocess
-
     try:
-
         processed_data = preprocessor.transform(input_data)
-
     except Exception as e:
-
         raise HTTPException(
             status_code=400,
             detail=f"Unable to process flight details: {str(e)}"
         )
 
     # Predict
-
     try:
-
         prediction = model.predict(processed_data)
-
         fare = float(prediction[0])
 
         if not pd.notna(fare) or fare <= 0:
-
             raise HTTPException(
                 status_code=500,
                 detail="Invalid fare prediction generated."
             )
-
     except HTTPException:
         raise
-
     except Exception:
-
         raise HTTPException(
             status_code=500,
             detail="Fare prediction failed."
         )
 
-    # Return result
+    # Feature 1: Formatted flight duration
+    hours = flight.Duration // 60
+    minutes = flight.Duration % 60
+    duration_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+
+    # Feature 2: Fare classification
+    if fare < 5500:
+        fare_category = "Budget Friendly"
+    elif fare < 10000:
+        fare_category = "Standard Economy"
+    else:
+        fare_category = "Premium / Peak"
+
+    # Feature 3: Smart seasonal booking advisory
+    if flight.Journey_Month in [5, 6, 12]:
+        booking_advice = "Buy Now (High seasonal demand)"
+    elif flight.Journey_Month in [7, 8, 9]:
+        booking_advice = "Fair Price (Monsoon / Off-peak deals likely)"
+    else:
+        booking_advice = "Stable Price (Standard advance booking window)"
+
+    # Feature 4: Multi-airline price comparison on the same route
+    comparison_airlines = ["IndiGo", "Air India", "SpiceJet", "Multiple carriers"]
+    comparisons = []
+    comp_records = []
+    active_comp_airlines = []
+
+    for carrier in comparison_airlines:
+        if carrier == flight.Airline or carrier not in VALID_CATEGORIES["Airline"]:
+            continue
+        rec = flight.model_dump()
+        rec["Airline"] = carrier
+        rec["Route"] = normalize_route(flight.Route)
+        comp_records.append(rec)
+        active_comp_airlines.append(carrier)
+
+    if comp_records:
+        try:
+            comp_df = pd.DataFrame(comp_records)
+            comp_trans = preprocessor.transform(comp_df)
+            comp_preds = model.predict(comp_trans)
+            for carrier, cp in zip(active_comp_airlines, comp_preds):
+                cfare = float(cp)
+                if pd.notna(cfare) and cfare > 0:
+                    comparisons.append({
+                        "airline": carrier,
+                        "fare": f"₹{cfare:,.0f}"
+                    })
+        except Exception:
+            pass
 
     return {
-
         "predicted_fare": round(fare, 2),
-
         "formatted_fare": f"₹{fare:,.0f}",
-
-        "currency": "INR"
-
+        "currency": "INR",
+        "duration_minutes": flight.Duration,
+        "duration_text": duration_str,
+        "fare_category": fare_category,
+        "booking_advice": booking_advice,
+        "comparisons": comparisons
     }
