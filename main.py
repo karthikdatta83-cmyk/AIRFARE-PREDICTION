@@ -27,11 +27,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "https://airfare-price-estimation-z3wm.onrender.com"
-    ],
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -316,15 +312,23 @@ def validate_flight(flight):
 
 
 # ==========================================
-# 9. HOME ENDPOINT
+# 9. HOME & HEALTH ENDPOINTS
 # ==========================================
 
 @app.get("/")
 def home():
-
     return {
         "message": "SkyFare Airfare Prediction API is running",
         "status": "success"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "preprocessor_loaded": preprocessor is not None
     }
 
 
