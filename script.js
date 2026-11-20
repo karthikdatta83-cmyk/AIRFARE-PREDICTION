@@ -3,22 +3,19 @@
  * Handles dynamic routing, duration calculation, city pairing, and ML API communication.
  */
 
-// Dynamic Backend URL resolution: Use current origin if served by FastAPI, else fallback
-const DEFAULT_REMOTE_URL = "https://airfare-prediction-1.onrender.com/predict";
-const LOCAL_API_URL = "http://127.0.0.1:8000/predict";
+// Dedicated FastAPI Prediction Backend URL
+const BACKEND_PREDICT_URL = "https://airfare-prediction-1.onrender.com/predict";
 
 function resolveApiUrl() {
     if (window.location.protocol.startsWith("http")) {
-        // If served from FastAPI directly on port 8000 or production server
-        if (window.location.port === "8000" || window.location.host.includes("onrender.com")) {
+        // If served directly from the FastAPI backend (local port 8000 or the backend Render host)
+        if (window.location.port === "8000" || window.location.host.includes("airfare-prediction-1")) {
             return `${window.location.origin}/predict`;
         }
-        // If running from VS Code Live Server or Vite (ports 5500, 3000, 5173, etc.)
-        if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
-            return LOCAL_API_URL;
-        }
     }
-    return DEFAULT_REMOTE_URL;
+    // In all other cases (e.g. airfare-price-estimation-z3wm static site, Live Server port 5500, GitHub Pages)
+    // always send prediction requests to the live backend service.
+    return BACKEND_PREDICT_URL;
 }
 
 let API_URL = resolveApiUrl();
@@ -344,34 +341,47 @@ form.addEventListener("submit", async (event) => {
 
     try {
         let response;
+        let responseText;
+
         try {
-            // First attempt with primary resolved API URL
             response = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
+            responseText = await response.text();
         } catch (fetchErr) {
-            // If primary failed and was local, try fallback remote URL
-            if (API_URL !== DEFAULT_REMOTE_URL) {
-                console.warn("Local API unreachable. Attempting remote fallback...", fetchErr);
-                API_URL = DEFAULT_REMOTE_URL;
+            if (API_URL !== BACKEND_PREDICT_URL) {
+                console.warn("Primary API URL unreachable. Retrying with production backend...", fetchErr);
+                API_URL = BACKEND_PREDICT_URL;
                 response = await fetch(API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
+                responseText = await response.text();
             } else {
                 throw fetchErr;
             }
         }
 
-        const responseText = await response.text();
+        // If a static server returned an empty 200 response (content-length: 0), fallback to backend
+        if ((!responseText || !responseText.trim()) && API_URL !== BACKEND_PREDICT_URL) {
+            console.warn("Empty response from origin, retrying with backend:", BACKEND_PREDICT_URL);
+            API_URL = BACKEND_PREDICT_URL;
+            response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            responseText = await response.text();
+        }
+
         let data;
         try {
             data = JSON.parse(responseText);
         } catch {
-            throw new Error(`Server returned non-JSON response (HTTP ${response.status}).`);
+            throw new Error(`The prediction server returned an invalid response (HTTP ${response.status}). Please check https://airfare-prediction-1.onrender.com/health`);
         }
 
         if (!response.ok) {
