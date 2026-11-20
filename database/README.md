@@ -1,149 +1,52 @@
-# 🗄️ Database Architecture: Airfare Price Estimation & Pattern Analysis
+# 🍃 MongoDB Database Architecture: Airfare Price Estimation & Pattern Analysis
 
-This directory contains the complete database designs for **both MySQL and MongoDB**, specifically tailored for the **Airfare Price Estimation and Fare Pattern Analysis** project.
+This directory contains the complete **MongoDB** database setup, schemas, seeders, and analytical queries for the **Airfare Price Estimation and Fare Pattern Analysis** project.
 
 ---
 
-## 📌 Context: Why These Tables/Collections Exist (Without Login/Registration)
+## 📌 Why These Collections Exist (Without Login/Registration)
 
-Even though the project has **no user authentication (no login or registration page)**, a production-grade machine learning web application requires a database layer to satisfy full-stack criteria and problem statement requirements:
+Even though this project has **no user login or registration page**, a database layer is essential to fulfill the problem statement and full-stack project requirements:
 
 1. **Prediction Logging (`prediction_logs`)**:
-   * Logs every fare inference request made through the API or Web UI.
-   * Enables tracking of popular origin-destination queries, searched airlines, duration trends, and predicted prices.
+   * Logs every fare estimation request made via the API or frontend form.
+   * Tracks searched airlines, origin-destination sectors, duration, stop counts, predicted prices, confidence intervals, and buying advisories.
 2. **Saved Flight Comparisons (`saved_comparisons`)**:
-   * Enables users to bookmark flight estimates and compare options side-by-side without needing an account (using an anonymous browser `session_id`).
-   * Satisfies complete **CRUD** requirements (Create bookmark, Read list, Update custom notes, Delete comparison).
+   * Allows users to bookmark flights and compare them side-by-side using an anonymous browser `session_id`.
+   * Satisfies complete **CRUD** requirements (Create bookmark, Read list, Update custom notes/budget, Delete comparison).
 3. **ML Model Performance Benchmarks (`model_benchmarks`)**:
-   * Directly implements **Step 8 of the Problem Statement** ("Compare regression algorithms").
+   * Directly addresses **Step 8 of the Problem Statement** ("Compare regression algorithms").
    * Stores $R^2$ scores, RMSE, and MAE across Linear Regression, Decision Tree, Random Forest, and XGBoost to feed dashboard charts.
 4. **Route Fare Patterns (`route_fare_statistics`)**:
    * Stores pre-computed aggregate baseline patterns (average fare, price ranges, median durations) derived from the 10,683 training flight records.
 
 ---
 
-## 🏛️ Directory Structure
+## 📁 Directory Structure
 
 ```
 database/
-├── README.md                      # Complete architecture and execution guide
-├── mysql/
-│   ├── 01_schema.sql              # Relational DDL (tables, indexes, views)
-│   ├── 02_seed_data.sql           # Initial dataset benchmarks and sample logs
-│   └── 03_analytics_queries.sql   # SQL queries for viva & analytical insights
+├── README.md                      # MongoDB architecture and execution guide
 └── mongodb/
-    ├── 01_init_mongo.js           # Mongo collections with JSON schema validation
-    ├── 02_seed_data.js            # Realistic seed documents
-    └── 03_aggregation_queries.js  # Aggregation pipelines matching problem statement
+    ├── setup_mongo.py             # 1-command Python initializer & seeder
+    ├── 01_init_mongo.js           # Collections with JSON schema validation & indexes
+    ├── 02_seed_data.js            # Initial dataset benchmarks and sample logs
+    ├── 03_aggregation_queries.js  # Mongosh analytical pipelines matching problem statement
+    └── exported_data/             # Ready-to-import JSON files for MongoDB Compass
+        ├── prediction_logs.json
+        ├── model_benchmarks.json
+        ├── route_fare_statistics.json
+        └── saved_comparisons.json
 ```
 
 ---
 
-## 📊 1. MySQL Relational Schema & ER Diagram
+## 🍃 MongoDB Document Schemas
 
-### Entity-Relationship (ER) Diagram
-
-```mermaid
-erDiagram
-    PREDICTION_LOGS {
-        bigint id PK
-        string session_id
-        string airline
-        string source_city
-        string destination_city
-        string route
-        tinyint journey_day
-        tinyint journey_month
-        tinyint dep_hour
-        tinyint dep_minute
-        tinyint arrival_hour
-        tinyint arrival_minute
-        int duration_minutes
-        tinyint total_stops
-        string additional_info
-        decimal predicted_fare
-        decimal fare_range_min
-        decimal fare_range_max
-        string confidence_level
-        string advisory_action
-        timestamp created_at
-    }
-
-    SAVED_COMPARISONS {
-        bigint id PK
-        string session_id
-        string custom_label
-        string airline
-        string source_city
-        string destination_city
-        string route
-        tinyint total_stops
-        int duration_minutes
-        decimal predicted_fare
-        string fare_range_display
-        text user_note
-        boolean is_favorite
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    MODEL_BENCHMARKS {
-        int id PK
-        string model_name UK
-        string algorithm_category
-        decimal r2_score
-        decimal rmse
-        decimal mae
-        boolean is_active_model
-        json hyperparameters
-        timestamp evaluated_at
-    }
-
-    ROUTE_FARE_STATISTICS {
-        int id PK
-        string source_city
-        string destination_city
-        decimal average_fare
-        decimal median_fare
-        decimal min_observed_fare
-        decimal max_observed_fare
-        int avg_duration_minutes
-        string popular_airline
-        int sample_count
-        timestamp last_updated
-    }
-```
-
-### How to Run in MySQL
-
-#### Option A: Command Line (CLI)
-```bash
-# 1. Login to MySQL and create schema
-mysql -u root -p < database/mysql/01_schema.sql
-
-# 2. Insert sample seed data
-mysql -u root -p < database/mysql/02_seed_data.sql
-
-# 3. Run analytical queries
-mysql -u root -p < database/mysql/03_analytics_queries.sql
-```
-
-#### Option B: MySQL Workbench or phpMyAdmin
-1. Open MySQL Workbench.
-2. Open and execute `01_schema.sql` (click the lightning bolt icon ⚡).
-3. Open and execute `02_seed_data.sql`.
-4. Open `03_analytics_queries.sql` to inspect or run queries individually.
-
----
-
-## 🍃 2. MongoDB Document Schema
-
-### Document Mapping
-
-#### Collection: `prediction_logs`
+### 1. Collection: `prediction_logs`
 ```json
 {
-  "_id": ObjectId("673dfa10b48e230018a10001"),
+  "_id": ObjectId("..."),
   "session_id": "sess-demo-849201",
   "airline": "IndiGo",
   "source_city": "Delhi",
@@ -163,10 +66,31 @@ mysql -u root -p < database/mysql/03_analytics_queries.sql
 }
 ```
 
-#### Collection: `model_benchmarks`
+### 2. Collection: `saved_comparisons`
 ```json
 {
-  "_id": ObjectId("673dfa10b48e230018a10002"),
+  "_id": ObjectId("..."),
+  "session_id": "sess-demo-849201",
+  "custom_label": "Budget Option - SpiceJet Non-Stop",
+  "airline": "SpiceJet",
+  "source_city": "Delhi",
+  "destination_city": "Cochin",
+  "route": "DEL → COK",
+  "total_stops": 0,
+  "duration_minutes": 195,
+  "predicted_fare": 4890.00,
+  "fare_range_display": "₹4,400 – ₹5,320",
+  "user_note": "Cheapest direct flight option for May vacation",
+  "is_favorite": true,
+  "created_at": ISODate("2024-11-20T10:35:00Z"),
+  "updated_at": ISODate("2024-11-20T10:35:00Z")
+}
+```
+
+### 3. Collection: `model_benchmarks`
+```json
+{
+  "_id": ObjectId("..."),
   "model_name": "Random Forest Regressor",
   "algorithm_category": "Tree Ensemble (Bagging)",
   "r2_score": 0.8842,
@@ -182,40 +106,42 @@ mysql -u root -p < database/mysql/03_analytics_queries.sql
 }
 ```
 
-### How to Run in MongoDB
-
-#### Option A: MongoDB Shell (`mongosh`)
-```bash
-# 1. Initialize schema validators & indexes
-mongosh < database/mongodb/01_init_mongo.js
-
-# 2. Seed database
-mongosh < database/mongodb/02_seed_data.js
-
-# 3. Run aggregation pipelines
-mongosh < database/mongodb/03_aggregation_queries.js
+### 4. Collection: `route_fare_statistics`
+```json
+{
+  "_id": ObjectId("..."),
+  "source_city": "Delhi",
+  "destination_city": "Cochin",
+  "average_fare": 10539.43,
+  "median_fare": 10262.00,
+  "min_observed_fare": 4200.00,
+  "max_observed_fare": 54747.00,
+  "avg_duration_minutes": 795,
+  "popular_airline": "Jet Airways",
+  "sample_count": 4537,
+  "last_updated": ISODate("2024-11-20T10:00:00Z")
+}
 ```
 
-#### Option B: MongoDB Compass / Atlas GUI
-1. Connect MongoDB Compass to your local instance (`mongodb://localhost:27017`) or Atlas connection string.
+---
+
+## 🚀 How to Run & Verify
+
+### Option 1: Automated 1-Command Setup (Python)
+From the project root:
+```bash
+pip install pymongo
+python database/mongodb/setup_mongo.py
+```
+
+### Option 2: Using MongoDB Compass (Visual UI)
+1. Open **MongoDB Compass** and connect to `mongodb://localhost:27017`.
 2. Select database `airfare_prediction_db`.
-3. Open `_mongosh` terminal at the bottom of MongoDB Compass and execute the scripts, or view the visual documents and schema validator tab.
+3. To import pre-seeded data, click **"Add Data" $\rightarrow$ "Import JSON"** and choose the files from `database/mongodb/exported_data/`.
 
----
-
-## ⚖️ 3. MySQL vs. MongoDB: Comparison for This Project
-
-| Feature / Criteria | MySQL (Relational) | MongoDB (Document / NoSQL) |
-| :--- | :--- | :--- |
-| **Data Format Fit** | Requires mapping JSON payloads to relational columns. | **Native JSON/BSON**: FastAPI dictionaries and frontend payloads save directly. |
-| **Setup & Cloud Hosting** | Requires running local service or paid cloud SQL instance. | **Zero local install**: Free MongoDB Atlas cluster (`mongodb+srv://...`) takes 2 minutes. |
-| **Authentication Needs** | Best when tables have foreign key cascades (`Users` $\rightarrow$ `Bookings`). Since this project has **no login**, relational constraints are not strictly necessary. | **Ideal**: Collections are autonomous; documents store self-contained prediction sessions. |
-| **Schema Evolution** | `ALTER TABLE` needed if new ML features or hyperparameters are added. | **Schema flexibility**: Easily logs dynamic ML tree percentiles, explanations, or route variations. |
-| **Academic & Viva Suitability** | High: Professors often look for ER diagrams, normalization (3NF), and SQL queries. | High: Demonstrates modern full-stack NoSQL practices for ML applications. |
-
----
-
-## 💡 Recommendation for Your Final Submission
-
-* **If your evaluation panel expects traditional SQL / ER diagrams**: Use the **MySQL** files (`database/mysql/`). You have the full ER diagram, normalized tables, and analytical SQL queries ready to present.
-* **If your priority is fast setup and seamless ML integration**: Use **MongoDB** (`database/mongodb/`). It naturally accepts JSON responses from the FastAPI `/predict` endpoint.
+### Option 3: Using MongoDB Shell (`mongosh`)
+```bash
+mongosh < database/mongodb/01_init_mongo.js
+mongosh < database/mongodb/02_seed_data.js
+mongosh < database/mongodb/03_aggregation_queries.js
+```
