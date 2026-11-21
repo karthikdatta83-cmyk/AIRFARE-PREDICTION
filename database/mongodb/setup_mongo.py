@@ -20,12 +20,22 @@ def main():
         print("    Please install it using: pip install pymongo")
         sys.exit(1)
 
-    # 1. Connect to MongoDB (Default local instance)
-    MONGO_URI = "mongodb://localhost:27017"
-    print(f"\n[1/5] Connecting to MongoDB at {MONGO_URI} ...")
+    # 1. Connect to MongoDB (Local or Cloud Atlas via MONGO_URI)
+    import os
+    try:
+        import certifi
+        tls_ca = certifi.where()
+    except ImportError:
+        tls_ca = None
+
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    print(f"\n[1/5] Connecting to MongoDB at {MONGO_URI.split('@')[-1] if '@' in MONGO_URI else MONGO_URI} ...")
     
     try:
-        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=4000)
+        client_kwargs = {"serverSelectionTimeoutMS": 6000}
+        if tls_ca and "mongodb+srv" in MONGO_URI:
+            client_kwargs["tlsCAFile"] = tls_ca
+        client = MongoClient(MONGO_URI, **client_kwargs)
         # Trigger connection check
         client.admin.command('ping')
         print("  ✓ Successfully connected to MongoDB server!")

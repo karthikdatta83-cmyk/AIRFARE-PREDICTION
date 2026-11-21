@@ -60,7 +60,15 @@ mongo_connected = False
 
 try:
     from pymongo import MongoClient
-    mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=1000)
+    client_kwargs = {"serverSelectionTimeoutMS": 2000}
+    try:
+        import certifi
+        if "mongodb+srv" in MONGO_URI:
+            client_kwargs["tlsCAFile"] = certifi.where()
+    except ImportError:
+        pass
+
+    mongo_client = MongoClient(MONGO_URI, **client_kwargs)
     mongo_client.admin.command("ping")
     db = mongo_client["airfare_prediction_db"]
     mongo_connected = True

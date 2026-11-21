@@ -18,12 +18,24 @@ except ImportError:
 
 
 def main():
+    import os
     try:
-        client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=2000)
+        import certifi
+        tls_ca = certifi.where()
+    except ImportError:
+        tls_ca = None
+
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+
+    try:
+        kwargs = {"serverSelectionTimeoutMS": 4000}
+        if tls_ca and "mongodb+srv" in mongo_uri:
+            kwargs["tlsCAFile"] = tls_ca
+        client = MongoClient(mongo_uri, **kwargs)
         client.admin.command("ping")
     except Exception as e:
-        print("[ERROR] Could not connect to local MongoDB on mongodb://localhost:27017")
-        print("  Make sure MongoDB is running: brew services start mongodb-community")
+        print(f"[ERROR] Could not connect to MongoDB: {e}")
+        print("  Make sure your connection string is correct or local MongoDB is running.")
         sys.exit(1)
 
     db = client["airfare_prediction_db"]
